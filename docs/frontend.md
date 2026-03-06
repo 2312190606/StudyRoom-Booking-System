@@ -136,7 +136,8 @@
 
 ## 三、目录结构
 ```text
-study-room-frontend/ 
+frontend/ 
+├── public/ 
 ├── src/ 
 │ ├── api/ # API 接口（auth、reservation、user 等） 
 │ ├── assets/ # 资源文件（图片、样式） 
@@ -149,11 +150,12 @@ study-room-frontend/
 │ │ └── admin/ # 管理端页面（仪表盘、自习室管理等） 
 │ ├── App.vue # 根组件 
 │ └── main.js # 入口文件 
-│ 
+├── .gitignore  
 ├── .env.development # 开发环境配置 
 ├── .env.production # 生产环境配置 
 ├── index.html 
 ├── package.json 
+├── package-lock.json
 └── vite.config.js
 ```
 ---
