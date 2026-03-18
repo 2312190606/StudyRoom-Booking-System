@@ -26,7 +26,7 @@
 - [x] gemini.md (项目 AI 辅助开发配置)
 
 ## PR 链接
-- PR #X: https://github.com/2312190606/StudyRoom-Booking-System/pull/X
+- Branch: [feature/lzy-backend-docs](https://github.com/2312190606/StudyRoom-Booking-System/tree/feature/lzy-backend-docs)
 
 ## 遇到的问题和解决
 1. 问题：初期 Mermaid 语法在部分 Markdown 编辑器下无法显示 ER 图。
