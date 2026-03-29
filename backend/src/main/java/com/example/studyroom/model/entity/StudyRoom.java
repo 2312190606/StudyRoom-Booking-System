@@ -1,0 +1,34 @@
+package com.example.studyroom.model.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+import java.time.LocalTime;
+
+/**
+ * 自习室实体类
+ */
+@Data
+@TableName("study_rooms")
+public class StudyRoom {
+    @TableId(type = IdType.AUTO)
+    private Long id;
+    
+    private String name;
+    
+    private String location;
+    
+    private Integer floor;
+    
+    private LocalTime openingTime;
+    
+    private LocalTime closingTime;
+    
+    private String description;
+    
+    /**
+     * 运营状态 (0: 维护中/关闭, 1: 开放)
+     */
+    private Integer status;
+}

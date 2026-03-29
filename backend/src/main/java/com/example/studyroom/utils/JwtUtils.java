@@ -1,0 +1,59 @@
+package com.example.studyroom.utils;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.Map;
+
+/**
+ * JWT 工具类
+ */
+@Component
+public class JwtUtils {
+
+    @Value("${studyroom.jwt.secret:studyroom_secret_key_12345678901234567890}")
+    private String secret;
+
+    @Value("${studyroom.jwt.expiration:86400000}") // 默认 24 小时
+    private Long expiration;
+
+    private SecretKey getSigningKey() {
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    /**
+     * 生成令牌
+     */
+    public String createToken(Map<String, Object> claims) {
+        return Jwts.builder()
+                .claims(claims)
+                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    /**
+     * 解析令牌
+     */
+    public Claims parseToken(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    /**
+     * 校验令牌是否过期
+     */
+    public boolean isTokenExpired(String token) {
+        return parseToken(token).getExpiration().before(new Date());
+    }
+}
