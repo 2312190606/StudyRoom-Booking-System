@@ -20,9 +20,9 @@
 - `GET /api/public/announcements/{id}` - 获取公告详情
 
 ### 1.3 自习室与座位 (`/api/rooms`)
-- `GET /api/rooms` - 分页获取自习室列表（支持按位置、楼层搜索筛选）
+- `GET /api/rooms` - 分页获取自习室列表（支持按位置、楼层搜索筛选，返回包含剩余可用座位数）
 - `GET /api/rooms/{id}` - 获取自习室详情
-- `GET /api/rooms/{id}/seats` - 获取指定自习室的座位可视化视图信息及状态
+- `GET /api/rooms/{id}/seats` - 获取指定自习室的座位可视化视图信息及状态（包含各座位横纵坐标、编号、状态等信息用于网格渲染）
 
 ### 1.4 预约中心 (`/api/reservations`)
 - `POST /api/reservations` - 提交预约请求（选定座位、开始时间、结束时间/时长）
@@ -61,8 +61,8 @@
 - `DELETE /api/admin/rooms/{id}` - 删除自习室（及批量删除）
 
 ### 2.3 座位管理 (`/api/admin/seats`)
-- `POST /api/admin/rooms/{id}/seats/batch` - 批量新增/生成某自习室座位
-- `PUT /api/admin/seats/{id}` - 修改单个座位属性（编号、靠窗、电源、状态等）
+- `POST /api/admin/rooms/{id}/seats/batch` - 批量新增/生成某自习室座位（依据行列配置）
+- `PUT /api/admin/seats/{id}` - 修改单个座位属性（坐标、编号、靠窗、电源、状态等，支持可视化布局修改）
 - `DELETE /api/admin/seats` - 批量删除座位
 - `PUT /api/admin/seats/status` - 批量修改座位状态（如设置为维修中）
 
