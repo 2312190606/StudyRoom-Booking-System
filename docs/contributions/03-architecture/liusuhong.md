@@ -29,7 +29,7 @@
 - [ ] 其他文档
 
 ## PR 链接
-- PR #1: https://github.com/2312190606/Mobile-computing/pull/1
+- PR #1: https://github.com/2312190606/StudyRoom-Booking-System/compare/feature/lsh-frontend-doc?expand=1
 
 ## 遇到的问题和解决
 1. **问题**: 早期在编写 `architecture.md` 文档时，编写的 Mermaid 代码在部分 Markdown 预览工具（及 IDE 内置渲染器）中提示 “Parse error” 以及 “Lexical error”，造成图表破版无法展现；且后端结构网线过多导致图表混乱。
