@@ -31,7 +31,7 @@
 - [x] 测试用例数量：5 个（涵盖登录的成功/异常拦截、分页查询过滤、新建座位预约验证、结合 Path 参数的数据返回等核心用例断言）
 
 ## PR 链接
-- PR #X: 
+- PR #X: https://github.com/2312190606/StudyRoom-Booking-System/compare/feature/lsh-frontend-doc?expand=1
 
 ## 遇到的问题和解决
 1. **问题**：在前端配置完 Axios 拦截器处理后，直接使用传统的 JSON Server 无法天然返回契约文档中规定的 `{ "code": 200, "msg": "xx", "data": {} }` 的标准统一格式，导致前端解析永远报出非此格式的异常。
