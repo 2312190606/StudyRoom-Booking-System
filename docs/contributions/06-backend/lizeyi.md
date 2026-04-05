@@ -18,7 +18,7 @@
 - [x] 本地联调验证 (解决端口冲突并验证容器间通讯正常)
 
 ## PR 链接
-- PR #1: https://github.com/2312190606/StudyRoom-Booking-System/tree/feature/lzy-backend-docs
+- PR #1: https://github.com/2312190606/StudyRoom-Booking-System/compare/feature/lzy-backend-docs?expand=1
 
 ## 遇到的问题和解决
 1. **问题：OpenJDK 基础镜像不可用**
