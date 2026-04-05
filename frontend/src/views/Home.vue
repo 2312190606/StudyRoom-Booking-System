@@ -1,0 +1,430 @@
+<script setup>
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+import Navbar from '../components/Navbar.vue'
+
+const router = useRouter()
+
+const showAllRooms = ref(false)
+const showSeatModal = ref(false)
+const currentRoom = ref(null)
+const seats = ref([])
+const bookingSuccessMsg = ref(false)
+const showFailToastMsg = ref(false)
+
+const modalMode = ref('book') // 'book' or 'setFrequent'
+const frequentSeatStr = ref("A-08")
+const frequentSeatStatus = ref("available")
+const showConfirmModal = ref(false)
+const selectedSeatForFrequent = ref(null)
+
+// 模拟数据 
+const studyRooms = ref([
+  {
+    id: 1,
+    name: '静雅自习室 - A区',
+    location: '图书馆 3 楼',
+    tag: '最静谧',
+    rating: 4.9,
+    seatsLeft: 12,
+    openTime: '07:00-23:00',
+    img: 'https://images.unsplash.com/photo-1568226065403-88229b01c36b?auto=format&fit=crop&q=80&w=600&h=400'
+  },
+  {
+    id: 2,
+    name: '晨曦自习室 - B区',
+    location: '教学楼 C 座',
+    tag: '采光好',
+    rating: 4.7,
+    seatsLeft: 5,
+    openTime: '07:00-23:00',
+    img: 'https://images.unsplash.com/photo-1497215888201-98782f9d519e?auto=format&fit=crop&q=80&w=600&h=400'
+  },
+  {
+    id: 3,
+    name: '极客自习室 - 24h',
+    location: '实训楼 1 楼',
+    tag: '不打烊',
+    rating: 4.8,
+    seatsLeft: 28,
+    openTime: '07:00-23:00',
+    img: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&q=80&w=600&h=400'
+  }
+])
+
+const totalSeatsLeft = computed(() => {
+  return studyRooms.value.reduce((total, room) => total + room.seatsLeft, 0)
+})
+
+const allRoomsSeats = ref({})
+
+const initRooms = () => {
+  studyRooms.value.forEach(room => {
+    const roomSeats = []
+    for (let i = 0; i < 48; i++) {
+      let status = 'available'
+      const rand = Math.random()
+      if (rand < 0.15) status = 'occupied'
+      else if (rand < 0.20) status = 'maintenance'
+      else if (rand < 0.22) status = 'booked'
+      
+      roomSeats.push({ id: i + 1, status })
+    }
+    allRoomsSeats.value[room.id] = roomSeats
+    room.seatsLeft = roomSeats.filter(s => s.status === 'available').length
+  })
+}
+initRooms()
+
+const generateSeats = () => {
+  if (currentRoom.value) {
+    seats.value = allRoomsSeats.value[currentRoom.value.id]
+  }
+}
+
+const openRoomLayout = (roomId, forceMode) => {
+  if (forceMode) modalMode.value = forceMode
+  showAllRooms.value = false 
+  currentRoom.value = studyRooms.value.find(r => r.id === roomId)
+  generateSeats()
+  showSeatModal.value = true
+}
+
+const handleSetFrequent = () => {
+  modalMode.value = 'setFrequent'
+  showAllRooms.value = true
+}
+
+const selectSeat = (seat) => {
+  if (modalMode.value === 'setFrequent') {
+    selectedSeatForFrequent.value = seat
+    showConfirmModal.value = true
+  } else {
+    if (seat.status !== 'available') return;
+    
+    // Simulate booking visually
+    seat.status = 'booked';
+    currentRoom.value.seatsLeft -= 1;
+    
+    bookingSuccessMsg.value = true;
+    setTimeout(() => {
+      bookingSuccessMsg.value = false;
+      showSeatModal.value = false;
+      router.push({ name: 'reservations' });
+    }, 1200);
+  }
+}
+
+const confirmSetFrequent = () => {
+  const roomPrefix = currentRoom.value.name.includes('-') ? currentRoom.value.name.split('-')[1].trim()[0] : 'S'
+  const seatNb = selectedSeatForFrequent.value.id.toString().padStart(2, '0')
+  frequentSeatStr.value = `${roomPrefix}-${seatNb}`
+  frequentSeatStatus.value = selectedSeatForFrequent.value.status
+  showConfirmModal.value = false
+  showSeatModal.value = false
+}
+
+const cancelSetFrequent = () => {
+  showConfirmModal.value = false
+}
+
+const handleQuickBook = () => {
+  if (frequentSeatStatus.value !== 'available') {
+    showFailToastMsg.value = true
+    setTimeout(() => { showFailToastMsg.value = false }, 1500)
+  } else {
+    bookingSuccessMsg.value = true
+    setTimeout(() => {
+      bookingSuccessMsg.value = false
+      router.push({ name: 'reservations' })
+    }, 1200)
+  }
+}
+</script>
+
+<template>
+  <div class="min-h-screen bg-gray-50 flex flex-col items-center">
+    <!-- Navbar -->
+    <Navbar />
+
+    <main class="w-full px-8 md:px-12 lg:px-20 py-8 pb-20 flex flex-col gap-8">
+      <!-- Hero Banner -->
+      <div class="bg-[#3B34D1] rounded-[2rem] p-10 text-white relative overflow-hidden shadow-lg h-[22rem] flex flex-col justify-center">
+        <!-- Background Pattern (Calendar icon outline) -->
+        <svg class="absolute right-10 top-1/2 transform -translate-y-1/2 w-96 h-96 text-white opacity-[0.15] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        
+        <div class="relative z-10 w-full md:w-2/3">
+          <h1 class="text-[2.75rem] font-bold mb-3 tracking-wide leading-tight text-white/95">静心专注，</h1>
+          <h1 class="text-[2.75rem] font-bold mb-10 tracking-wide leading-tight text-white/95">在这里开启高效学习</h1>
+        </div>
+      </div>
+
+      <!-- Notice Bar -->
+      <div class="bg-[#fef4e8] border border-orange-100 rounded-xl px-5 py-3.5 flex items-center justify-between text-orange-600 shadow-sm mt-2">
+        <div class="flex items-center gap-3 text-sm font-medium">
+          <div class="bg-[#f28e2b] text-white p-1 rounded-md">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
+          </div>
+          <span class="text-[#e27318]">期末周将至，自习室预约时限调整为 4 小时。</span>
+        </div>
+        <button class="text-xs font-bold text-[#e27318] hover:text-orange-800">更多</button>
+      </div>
+
+      <!-- Overview Header -->
+      <div class="flex items-end justify-between mt-6">
+        <div>
+          <h2 class="text-[1.35rem] font-bold text-gray-900 tracking-wide">自习室概览</h2>
+          <div class="text-[13px] text-gray-500 mt-1.5 font-medium">共 {{ studyRooms.length }} 个自习室，剩余 {{ totalSeatsLeft }} 个座位</div>
+        </div>
+        <button @click="showAllRooms = true; modalMode = 'book'" class="text-[13px] font-bold text-[#3B34D1] hover:text-indigo-800 flex items-center gap-0.5 border-none bg-transparent cursor-pointer p-0">查看全部 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+      </div>
+
+      <!-- Room Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
+        <div v-for="room in studyRooms" :key="room.id" class="bg-white rounded-[1.25rem] overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition duration-300 group">
+          <!-- Image -->
+          <div class="h-48 relative bg-gray-200 overflow-hidden">
+            <img :src="room.img" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+            <!-- Tag removed -->
+          </div>
+          <!-- Body -->
+          <div class="p-6 flex flex-col gap-5 flex-1">
+            <div>
+              <h3 class="font-bold text-lg text-gray-900">{{ room.name }}</h3>
+              <div class="flex items-center gap-1.5 text-[13px] text-gray-500 mt-1.5 font-medium">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                {{ room.location }}
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-8 mt-1">
+              <div class="flex items-center gap-3">
+                <div class="w-[2.25rem] h-[2.25rem] rounded-full bg-[#f0fdf4] text-[#22c55e] flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </div>
+                <div>
+                  <div class="text-[11px] text-gray-400 font-medium">剩余座位</div>
+                  <div class="text-sm font-black text-gray-900 mt-0.5">{{ room.seatsLeft }}</div>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-3">
+                <div class="w-[2.25rem] h-[2.25rem] rounded-full bg-[#eff6ff] text-[#3b82f6] flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div>
+                  <div class="text-[11px] text-gray-400 font-medium">开放时间</div>
+                  <div class="text-sm font-black text-gray-900 mt-0.5">{{ room.openTime }}</div>
+                </div>
+              </div>
+            </div>
+
+            <button @click="openRoomLayout(room.id, 'book')" class="mt-4 w-full bg-[#0f172a] text-white py-3 rounded-xl text-sm font-bold hover:bg-gray-800 transition shadow-md" style="color: white !important;">
+              <span class="text-white" style="color: white !important;">去预选座位</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Book Section (常用座位) -->
+      <div class="bg-white border border-gray-100 rounded-[1.25rem] p-6 flex items-center justify-between shadow-sm mt-4">
+        <div class="flex items-center gap-5">
+          <div class="w-[3.5rem] h-[3.5rem] rounded-2xl bg-[#5A52FF] text-white flex items-center justify-center shadow-lg shadow-indigo-200">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-gray-900">常用座位</h3>
+            <div class="text-[13px] text-gray-500 mt-1 font-medium">快速预约您常坐的位置，开启专注模式</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <button @click="handleSetFrequent" class="px-6 py-3 rounded-xl border border-gray-200 text-gray-700 text-sm font-bold hover:bg-gray-50 transition cursor-pointer bg-white">设置常用</button>
+          <button @click="handleQuickBook" class="px-6 py-3 rounded-xl bg-[#5A52FF] text-white text-sm font-bold hover:bg-[#4a42e5] transition shadow-lg shadow-indigo-200 border-none cursor-pointer flex items-center justify-center" style="color: white !important;">
+            <span class="text-white" style="color: white !important;">一键预约 {{ frequentSeatStr }}</span>
+          </button>
+        </div>
+      </div>
+    </main>
+    
+    <!-- All Rooms Modal -->
+    <div v-if="showAllRooms" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-12">
+      <!-- Backdrop -->
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="showAllRooms = false"></div>
+      
+      <!-- Modal Content -->
+      <div class="bg-gray-50 w-full max-w-6xl h-full md:max-h-full rounded-[2rem] shadow-2xl relative flex flex-col overflow-hidden animate-fade-in-up">
+        <!-- Header -->
+        <div class="bg-white px-8 py-6 border-b border-gray-100 flex items-center justify-between shrink-0">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900 tracking-wide">全部自习室</h2>
+            <p class="text-[13px] text-gray-500 mt-1 font-medium">浏览并选择适合您的学习空间，共找到 {{ studyRooms.length }} 个结果</p>
+          </div>
+          <button @click="showAllRooms = false" class="w-10 h-10 bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-full flex items-center justify-center transition cursor-pointer border-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        
+        <!-- Room List -->
+        <div class="p-8 overflow-y-auto flex-1">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div v-for="room in studyRooms" :key="'modal-'+room.id" class="bg-white rounded-[1.25rem] overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition duration-300 group">
+              <!-- Image -->
+              <div class="h-48 relative bg-gray-200 overflow-hidden">
+                <img :src="room.img" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                <!-- Tag removed -->
+              </div>
+              <!-- Body -->
+              <div class="p-6 flex flex-col gap-5 flex-1">
+                <div>
+                  <h3 class="font-bold text-lg text-gray-900">{{ room.name }}</h3>
+                  <div class="flex items-center gap-1.5 text-[13px] text-gray-500 mt-1.5 font-medium">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    {{ room.location }}
+                  </div>
+                </div>
+                
+                <div class="flex items-center gap-8 mt-1">
+                  <div class="flex items-center gap-3">
+                    <div class="w-[2.25rem] h-[2.25rem] rounded-full bg-[#f0fdf4] text-[#22c55e] flex items-center justify-center">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    </div>
+                    <div>
+                      <div class="text-[11px] text-gray-400 font-medium">剩余座位</div>
+                      <div class="text-sm font-black text-gray-900 mt-0.5">{{ room.seatsLeft }}</div>
+                    </div>
+                  </div>
+                  
+                  <div class="flex items-center gap-3">
+                    <div class="w-[2.25rem] h-[2.25rem] rounded-full bg-[#eff6ff] text-[#3b82f6] flex items-center justify-center">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <div>
+                      <div class="text-[11px] text-gray-400 font-medium">开放时间</div>
+                      <div class="text-sm font-black text-gray-900 mt-0.5">{{ room.openTime }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <button @click="openRoomLayout(room.id, modalMode)" class="mt-4 w-full bg-[#0f172a] text-white py-3 rounded-xl text-sm font-bold hover:bg-gray-800 transition shadow-md border-none cursor-pointer flex items-center justify-center">
+                  <span class="text-white">{{ modalMode === 'setFrequent' ? '选择该自习室' : '去预选座位' }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seat Selection Modal -->
+    <div v-if="showSeatModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 md:p-12">
+      <!-- Backdrop -->
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showSeatModal = false"></div>
+      
+      <!-- Modal Content -->
+      <div class="bg-gray-50 w-full max-w-4xl h-full md:max-h-full rounded-[2rem] shadow-2xl relative flex flex-col overflow-hidden animate-fade-in-up">
+        <!-- Header -->
+        <div class="bg-white px-8 py-6 border-b border-gray-100 flex items-center justify-between shrink-0">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900 tracking-wide">{{ currentRoom?.name }} - {{ modalMode === 'book' ? '座位预选' : '设置常用' }}</h2>
+            <p class="text-[13px] text-gray-500 mt-1 font-medium">点击绿色可用座位即可{{ modalMode === 'book' ? '快速预约' : '设为常用' }}</p>
+          </div>
+          <button @click="showSeatModal = false" class="w-10 h-10 bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-full flex items-center justify-center transition cursor-pointer border-none p-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        
+        <!-- Legend -->
+        <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 py-4 bg-white border-b border-gray-100 shrink-0">
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-green-500 shadow-sm border border-green-600"></div><span class="text-sm text-gray-600 font-bold">可用</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-red-500 shadow-sm border border-red-600"></div><span class="text-sm text-gray-600 font-bold">已占用</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-gray-400 shadow-sm border border-gray-500"></div><span class="text-sm text-gray-600 font-bold">维修中</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-yellow-400 shadow-sm border border-yellow-500"></div><span class="text-sm text-gray-600 font-bold">我的预约</span>
+            </div>
+        </div>
+
+        <!-- Seat Grid -->
+        <div class="p-8 overflow-y-auto flex-1 flex justify-center items-start bg-gray-100/50">
+            <!-- Simulated desk/room area -->
+            <div class="grid grid-cols-6 sm:grid-cols-8 gap-3 sm:gap-4 lg:gap-5 bg-white p-6 md:p-8 rounded-[1.5rem] shadow-sm border border-gray-200">
+                <button v-for="seat in seats" :key="seat.id" @click="selectSeat(seat)"
+                    :class="{
+                        'bg-green-500 hover:bg-green-600 hover:scale-[1.15] active:scale-95 cursor-pointer shadow-[0_4px_12px_rgba(34,197,94,0.3)] z-10': seat.status === 'available',
+                        'bg-red-500 opacity-80': seat.status === 'occupied',
+                        'bg-gray-400 opacity-60': seat.status === 'maintenance',
+                        'bg-yellow-400 shadow-[0_4px_12px_rgba(250,204,21,0.3)]': seat.status === 'booked',
+                        'cursor-not-allowed': modalMode === 'book' && seat.status !== 'available',
+                        'hover:scale-[1.15] active:scale-95 cursor-pointer z-10 hover:shadow-lg': modalMode === 'setFrequent'
+                    }"
+                    class="w-[2.5rem] h-[2.5rem] sm:w-[3rem] sm:h-[3rem] md:w-[3.5rem] md:h-[3.5rem] rounded-[10px] sm:rounded-xl transition-all duration-300 flex items-center justify-center border border-black/10 group relative border-none p-0 outline-none">
+                    <span class="text-[11px] md:text-[13px] font-black text-white/95 drop-shadow-sm">{{ seat.id }}</span>
+                </button>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Global Success Toast -->
+    <div v-if="bookingSuccessMsg" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[200] bg-[#121624]/95 text-white px-10 py-8 rounded-[2rem] shadow-2xl flex flex-col items-center gap-4 animate-fade-in-up backdrop-blur-xl border border-gray-800">
+      <div class="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center mb-2 shadow-[0_4px_16px_rgba(34,197,94,0.4)]">
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+      </div>
+      <div class="text-xl font-black tracking-wide text-white">座位预约成功</div>
+      <div class="text-sm font-bold text-gray-400 tracking-wider">正在前往我的预约...</div>
+    </div>
+
+    <!-- Global Fail Toast -->
+    <div v-if="showFailToastMsg" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[200] bg-[#121624]/95 text-white px-10 py-8 rounded-[2rem] shadow-2xl flex flex-col items-center gap-4 animate-fade-in-up backdrop-blur-xl border border-gray-800">
+      <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-2 shadow-[0_4px_16px_rgba(239,68,68,0.2)]">
+        <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </div>
+      <div class="text-xl font-black tracking-wide text-white">该座位目前不可用</div>
+      <div class="text-sm font-bold text-gray-400 tracking-wider">该常用座位可能被占用或在维护中</div>
+    </div>
+
+    <!-- Confirm Frequent Seat Modal -->
+    <div v-if="showConfirmModal" class="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6">
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="cancelSetFrequent"></div>
+      <div class="bg-white w-full max-w-sm rounded-[1.5rem] shadow-2xl relative p-6 sm:p-8 flex flex-col items-center animate-fade-in-up text-center">
+        <div class="w-14 h-14 rounded-full bg-indigo-50 text-[#5A52FF] flex items-center justify-center mb-5">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">设置常用座位</h3>
+        <p class="text-[14px] text-gray-500 mb-6 font-medium px-4 leading-relaxed">确认将“<span class="text-gray-800 font-bold mx-1">{{ selectedSeatForFrequent?.id }} 号座位</span>”设置为常用座位吗？</p>
+        <div class="flex gap-3 w-full">
+          <button @click="cancelSetFrequent" class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition cursor-pointer border-none">取消</button>
+          <button @click="confirmSetFrequent" class="flex-1 py-3 bg-[#5A52FF] hover:bg-[#4a42e5] text-white font-bold rounded-xl transition shadow-md shadow-indigo-200 cursor-pointer border-none">确认</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
