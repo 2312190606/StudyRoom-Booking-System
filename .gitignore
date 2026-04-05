@@ -23,3 +23,8 @@ GEMINI.md
 
 **/api.md
 **/backend.md
+
+# 数据库数据目录
+mysql-data/
+redis-data/
+
