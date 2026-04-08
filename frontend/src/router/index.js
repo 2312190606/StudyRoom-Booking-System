@@ -4,8 +4,9 @@ import LoginView from '../views/Login.vue'
 import RegisterView from '../views/Register.vue'
 import ProfileView from '../views/Profile.vue'
 import ReservationsView from '../views/Reservations.vue'
+import GuideView from '../views/Guide.vue'
+import AboutView from '../views/About.vue'
 import AdminLayout from '../layouts/AdminLayout.vue'
-import DashboardView from '../views/admin/Dashboard.vue'
 import AdminRoomsView from '../views/admin/Rooms.vue'
 import AdminBookingsView from '../views/admin/Bookings.vue'
 import AdminUsersView from '../views/admin/Users.vue'
@@ -41,13 +42,22 @@ const router = createRouter({
       component: ReservationsView
     },
     {
+      path: '/guide',
+      name: 'guide',
+      component: GuideView
+    },
+    {
+      path: '/about',
+      name: 'about',
+      component: AboutView
+    },
+    {
       path: '/admin',
       component: AdminLayout,
       children: [
         {
           path: '',
-          name: 'admin-dashboard',
-          component: DashboardView
+          redirect: '/admin/rooms'
         },
         {
           path: 'rooms',

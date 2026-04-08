@@ -4,14 +4,26 @@ import { useRouter } from 'vue-router'
 
 import Navbar from '../components/Navbar.vue'
 
+import { useAnnouncementStore } from '../stores/announcement'
+
 const router = useRouter()
+const announcementStore = useAnnouncementStore()
 
 const showAllRooms = ref(false)
 const showSeatModal = ref(false)
+const showAnnouncementModal = ref(false)
 const currentRoom = ref(null)
 const seats = ref([])
 const bookingSuccessMsg = ref(false)
 const showFailToastMsg = ref(false)
+const currentNoticeIdx = ref(0)
+
+// Rotation Logic for Notice Bar
+setInterval(() => {
+  if (announcementStore.publishedAnnouncements.length > 0) {
+    currentNoticeIdx.value = (currentNoticeIdx.value + 1) % announcementStore.publishedAnnouncements.length
+  }
+}, 4000)
 
 const modalMode = ref('book') // 'book' or 'setFrequent'
 const frequentSeatStr = ref("A-08")
@@ -165,15 +177,24 @@ const handleQuickBook = () => {
         </div>
       </div>
 
-      <!-- Notice Bar -->
-      <div class="bg-[#fef4e8] border border-orange-100 rounded-xl px-5 py-3.5 flex items-center justify-between text-orange-600 shadow-sm mt-2">
-        <div class="flex items-center gap-3 text-sm font-medium">
-          <div class="bg-[#f28e2b] text-white p-1 rounded-md">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
+      <!-- Dynamic Notice Bar -->
+      <div v-if="announcementStore.publishedAnnouncements.length > 0" class="bg-[#fef4e8] border border-orange-100 rounded-2xl px-5 py-3.5 flex items-center justify-between text-orange-600 shadow-sm mt-2">
+        <div class="flex items-center gap-3 text-sm font-black flex-1 overflow-hidden">
+          <div class="bg-[#f28e2b] text-white p-1 rounded-lg shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
           </div>
-          <span class="text-[#e27318]">期末周将至，自习室预约时限调整为 4 小时。</span>
+          <div class="flex-1 h-6 relative overflow-hidden">
+            <div v-for="(anno, idx) in announcementStore.publishedAnnouncements" :key="anno.id" 
+                 class="absolute inset-0 flex items-center transition-all duration-700 pointer-events-none"
+                 :class="{
+                   'translate-y-0 opacity-100': currentNoticeIdx === idx,
+                   '-translate-y-full opacity-0': currentNoticeIdx !== idx
+                 }">
+              <span class="text-[#e27318] truncate">{{ anno.title }}</span>
+            </div>
+          </div>
         </div>
-        <button class="text-xs font-bold text-[#e27318] hover:text-orange-800">更多</button>
+        <button @click="showAnnouncementModal = true" class="text-xs font-black text-[#e27318] hover:text-orange-800 ml-4 whitespace-nowrap bg-transparent border-none cursor-pointer tracking-wider">查看更多</button>
       </div>
 
       <!-- Overview Header -->
@@ -406,6 +427,32 @@ const handleQuickBook = () => {
         <div class="flex gap-3 w-full">
           <button @click="cancelSetFrequent" class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition cursor-pointer border-none">取消</button>
           <button @click="confirmSetFrequent" class="flex-1 py-3 bg-[#5A52FF] hover:bg-[#4a42e5] text-white font-bold rounded-xl transition shadow-md shadow-indigo-200 cursor-pointer border-none">确认</button>
+        </div>
+      </div>
+    </div>
+    <!-- Announcements List Modal -->
+    <div v-if="showAnnouncementModal" class="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 md:p-12">
+      <div class="absolute inset-0 bg-[#0A0D18]/80 backdrop-blur-md" @click="showAnnouncementModal = false"></div>
+      <div class="bg-white w-full max-w-2xl h-full md:max-h-[80vh] rounded-[2.5rem] shadow-2xl relative flex flex-col overflow-hidden animate-fade-in-up">
+        <div class="px-8 py-8 border-b border-gray-50 flex items-center justify-between shrink-0 bg-white z-10">
+          <div>
+            <h2 class="text-2xl font-black text-gray-900 tracking-tight">所有公告</h2>
+            <p class="text-[13px] text-gray-400 mt-1 font-bold">获取自习室最新动态与规则说明</p>
+          </div>
+          <button @click="showAnnouncementModal = false" class="w-10 h-10 bg-gray-50 hover:bg-gray-100 text-gray-400 rounded-full flex items-center justify-center transition cursor-pointer border-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        
+        <div class="p-8 overflow-y-auto flex-1 space-y-6 bg-gray-50/50">
+          <div v-for="anno in announcementStore.publishedAnnouncements" :key="'modal-anno-'+anno.id" class="bg-white p-7 rounded-[2rem] border border-gray-100 shadow-sm transition hover:shadow-md group">
+            <div class="flex items-center gap-3 mb-4">
+              <span class="px-3 py-1 rounded-lg bg-orange-50 text-orange-500 text-[10px] font-black uppercase tracking-widest">重要通知</span>
+              <span class="text-[11px] font-bold text-gray-300">{{ anno.date }}</span>
+            </div>
+            <h3 class="text-lg font-black text-gray-900 mb-3 group-hover:text-[#5A52FF] transition">{{ anno.title }}</h3>
+            <p class="text-[14px] font-bold text-gray-500 leading-relaxed">{{ anno.content }}</p>
+          </div>
         </div>
       </div>
     </div>
