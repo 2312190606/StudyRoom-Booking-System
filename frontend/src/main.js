@@ -1,6 +1,11 @@
 import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
+import router from './router'
+
+// 导入 Vant 核心组件和样式
+import Vant from 'vant'
+import 'vant/lib/index.css'
 
 async function enableMocking() {
   if (process.env.NODE_ENV !== 'development') {
@@ -10,6 +15,13 @@ async function enableMocking() {
   return worker.start({ onUnhandledRequest: 'bypass' })
 }
 
+import { createPinia } from 'pinia'
+
 enableMocking().then(() => {
-  createApp(App).mount('#app')
+  const app = createApp(App)
+  const pinia = createPinia()
+  app.use(pinia)
+  app.use(router)
+  app.use(Vant)
+  app.mount('#app')
 })
