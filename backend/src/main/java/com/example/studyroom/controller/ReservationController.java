@@ -1,5 +1,6 @@
 package com.example.studyroom.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.studyroom.common.Result;
 import com.example.studyroom.model.dto.CheckInDTO;
 import com.example.studyroom.model.dto.ReservationDTO;
@@ -40,8 +41,10 @@ public class ReservationController {
      * 获取我的预约列表
      */
     @GetMapping("/me")
-    public Result<List<Reservation>> getMyReservations() {
-        return Result.success(reservationService.getMyReservations(getCurrentUserId()));
+    public Result<Page<Reservation>> getMyReservations(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return Result.success(reservationService.getMyReservations(getCurrentUserId(), page, size));
     }
 
     /**
@@ -76,6 +79,24 @@ public class ReservationController {
     @PostMapping("/{id}/check-in")
     public Result<?> checkIn(@PathVariable Long id, @RequestBody(required = false) CheckInDTO checkInDTO) {
         reservationService.checkIn(id, getCurrentUserId());
+        return Result.success();
+    }
+
+    /**
+     * 结束学习
+     */
+    @PutMapping("/{id}/end")
+    public Result<?> endStudy(@PathVariable Long id) {
+        reservationService.endStudy(id, getCurrentUserId());
+        return Result.success();
+    }
+
+    /**
+     * 删除预约记录
+     */
+    @DeleteMapping("/{id}")
+    public Result<?> deleteReservation(@PathVariable Long id) {
+        reservationService.deleteReservation(id, getCurrentUserId());
         return Result.success();
     }
 }

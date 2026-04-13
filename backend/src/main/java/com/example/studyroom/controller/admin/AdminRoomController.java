@@ -42,6 +42,12 @@ public class AdminRoomController {
         return Result.success();
     }
 
+    @PutMapping("/rooms/{id}/maintenance")
+    public Result<?> updateMaintenanceSeats(@PathVariable Long id, @RequestBody Map<String, String> params) {
+        adminService.updateMaintenanceSeats(id, params.get("maintenanceSeats"));
+        return Result.success();
+    }
+
     @DeleteMapping("/rooms/{id}")
     public Result<?> deleteRoom(@PathVariable Long id) {
         adminService.deleteRoom(id);

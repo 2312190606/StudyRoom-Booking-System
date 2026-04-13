@@ -18,8 +18,16 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      redirect: () => {
+        const token = localStorage.getItem('token')
+        return token ? '/home' : '/login'
+      }
+    },
+    {
+      path: '/home',
       name: 'home',
-      component: HomeView
+      component: HomeView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/login',
@@ -34,12 +42,14 @@ const router = createRouter({
     {
       path: '/profile',
       name: 'profile',
-      component: ProfileView
+      component: ProfileView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/reservations',
       name: 'reservations',
-      component: ReservationsView
+      component: ReservationsView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/guide',
@@ -54,6 +64,7 @@ const router = createRouter({
     {
       path: '/admin',
       component: AdminLayout,
+      meta: { requiresAuth: true, requiresAdmin: true },
       children: [
         {
           path: '',
@@ -87,6 +98,29 @@ const router = createRouter({
       ]
     }
   ]
+})
+
+// 路由守卫
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  const userRole = localStorage.getItem('userRole')
+
+  // 需要登录的页面
+  if (to.meta.requiresAuth && !token) {
+    return next('/login')
+  }
+
+  // 需要管理员权限的页面
+  if (to.meta.requiresAdmin && userRole !== 'admin') {
+    return next('/home')
+  }
+
+  // 已登录用户访问登录页，跳转到首页
+  if (to.path === '/login' && token) {
+    return next('/home')
+  }
+
+  next()
 })
 
 export default router

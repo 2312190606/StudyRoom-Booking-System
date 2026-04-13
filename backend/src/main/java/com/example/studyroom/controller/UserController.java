@@ -41,8 +41,8 @@ public class UserController {
      */
     @PutMapping("/profile")
     public Result<?> updateProfile(@RequestBody UserProfileDTO profileDTO) {
-        userService.updateProfile(getCurrentUserId(), profileDTO.getNickname(), 
-                profileDTO.getAvatar(), profileDTO.getPhone(), profileDTO.getEmail());
+        userService.updateProfile(getCurrentUserId(),
+                profileDTO.getUsername(), profileDTO.getPhone());
         return Result.success();
     }
 
@@ -70,5 +70,13 @@ public class UserController {
     @GetMapping("/violations")
     public Result<List<Violation>> getViolations() {
         return Result.success(userService.getViolations(getCurrentUserId()));
+    }
+
+    /**
+     * 获取信誉分
+     */
+    @GetMapping("/credit-score")
+    public Result<Integer> getCreditScore() {
+        return Result.success(userService.getCreditScore(getCurrentUserId()));
     }
 }

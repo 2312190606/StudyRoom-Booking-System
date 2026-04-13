@@ -22,13 +22,13 @@ import Navbar from '../components/Navbar.vue'
           
           <div class="w-20 h-1 bg-gradient-to-r from-transparent via-indigo-200 to-transparent mb-10"></div>
           
-          <p class="max-w-2xl text-[16px] font-bold text-gray-400 leading-loose">
+          <p class="max-w-2xl text-lg font-bold text-gray-400 leading-loose">
             我们致力于重塑学习环境的交互体验。通过先进的座位预约算法与实时人流监控系统，“静学”旨在为每一位学子提供极致安静、智能且充满学术氛围的学习港湾。不仅是座位预约，更是您的学习效率倍增器。
           </p>
         </div>
       </div>
 
-      <button @click="$router.back()" class="mt-8 text-[14px] font-black text-indigo-500 bg-indigo-50 px-10 py-4 rounded-full hover:bg-indigo-100 transition border-none cursor-pointer">
+      <button @click="$router.back()" class="mt-8 text-[15px] font-black text-indigo-500 bg-indigo-50 px-10 py-4 rounded-full hover:bg-indigo-100 transition border-none cursor-pointer">
         返回个人中心
       </button>
     </main>

@@ -7,21 +7,21 @@ import router from './router'
 import Vant from 'vant'
 import 'vant/lib/index.css'
 
-async function enableMocking() {
-  if (process.env.NODE_ENV !== 'development') {
-    return
-  }
-  const { worker } = await import('./mocks/browser')
-  return worker.start({ onUnhandledRequest: 'bypass' })
-}
+// async function enableMocking() {
+//   if (process.env.NODE_ENV !== 'development') {
+//     return
+//   }
+//   const { worker } = await import('./mocks/browser')
+//   return worker.start({ onUnhandledRequest: 'bypass' })
+// }
 
 import { createPinia } from 'pinia'
 
-enableMocking().then(() => {
+// enableMocking().then(() => {
   const app = createApp(App)
   const pinia = createPinia()
   app.use(pinia)
   app.use(router)
   app.use(Vant)
   app.mount('#app')
-})
+// })

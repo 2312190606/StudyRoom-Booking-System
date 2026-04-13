@@ -35,4 +35,13 @@ public class AuthController {
         String token = authService.login(loginDTO.getUsername(), loginDTO.getPassword());
         return Result.success(token);
     }
+
+    /**
+     * 刷新 Token
+     */
+    @PostMapping("/refresh")
+    public Result<String> refreshToken(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        return Result.success(authService.refreshToken(token));
+    }
 }

@@ -40,3 +40,19 @@ export function extendReservation(id) {
 export function checkIn(id, data) {
   return apiClient.post(`/reservations/${id}/check-in`, data);
 }
+
+/**
+ * 结束学习
+ * @param {Number|String} id 预约ID
+ */
+export function endStudy(id) {
+  return apiClient.put(`/reservations/${id}/end`);
+}
+
+/**
+ * 删除预约记录
+ * @param {Number|String} id 预约ID
+ */
+export function deleteReservation(id) {
+  return apiClient.delete(`/reservations/${id}`);
+}

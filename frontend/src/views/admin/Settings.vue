@@ -1,32 +1,33 @@
 <script setup>
 import { ref } from 'vue'
-import { showLoadingToast, showSuccessToast, showFailToast } from 'vant'
+import { showNotify } from 'vant'
 
-const isChecking = ref(false)
-const dbStatus = ref('online') // 'online', 'offline', 'error'
+const dbStatus = ref('online')
 const lastCheckTime = ref(new Date().toLocaleString())
+const isChecking = ref(false)
 
-const checkDatabaseConnection = () => {
+const checkDatabaseConnection = async () => {
   isChecking.value = true
-  showLoadingToast({
-    message: '正在检测数据库连接...',
-    forbidClick: true,
-    duration: 1500
-  })
-
-  // Simulated connection check logic
-  setTimeout(() => {
-    isChecking.value = false
-    const rand = Math.random()
-    if (rand > 0.05) {
+  try {
+    // 调用后端健康检查接口
+    const res = await fetch('/api/health', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    })
+    if (res.ok) {
       dbStatus.value = 'online'
-      lastCheckTime.value = new Date().toLocaleString()
-      showSuccessToast('连接正常')
+      showNotify({ type: 'success', message: '数据库连接正常' })
     } else {
       dbStatus.value = 'offline'
-      showFailToast('数据库连接超时')
+      showNotify({ type: 'danger', message: '数据库连接异常' })
     }
-  }, 1600)
+    lastCheckTime.value = new Date().toLocaleString()
+  } catch (error) {
+    dbStatus.value = 'offline'
+    showNotify({ type: 'danger', message: '数据库连接超时' })
+    console.error('数据库检测失败', error)
+  } finally {
+    isChecking.value = false
+  }
 }
 </script>
 
@@ -45,7 +46,7 @@ const checkDatabaseConnection = () => {
       <div class="bg-[#121624] border border-[#1C2136] rounded-[32px] p-10 flex flex-col items-center relative overflow-hidden group">
         <!-- Background Glow -->
         <div class="absolute -top-32 -left-32 w-80 h-80 bg-[#5A52FF]/5 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        
+
         <div class="z-10 flex flex-col items-center text-center">
           <!-- Status Icon -->
           <div :class="{
@@ -54,7 +55,7 @@ const checkDatabaseConnection = () => {
           }" class="w-32 h-32 rounded-full flex items-center justify-center mb-8 relative transition-all duration-500">
             <!-- Pulsing line for online -->
             <div v-if="dbStatus === 'online'" class="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping opacity-20"></div>
-            
+
             <svg v-if="dbStatus === 'online'" class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
             <svg v-else class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
           </div>
@@ -63,7 +64,7 @@ const checkDatabaseConnection = () => {
             {{ dbStatus === 'online' ? '数据库连接正常' : '数据库连接异常' }}
           </h3>
           <p class="text-gray-550 font-bold mb-10 tracking-widest text-xs uppercase opacity-60">Database Connection Monitor</p>
-          
+
           <div class="flex flex-col gap-3 w-full max-w-sm">
             <div class="bg-[#0B0F19] rounded-2xl p-5 border border-[#1C2136] flex items-center justify-between">
               <span class="text-[12px] font-black text-gray-500 uppercase tracking-widest">当前状态</span>
@@ -85,7 +86,7 @@ const checkDatabaseConnection = () => {
         </div>
       </div>
     </div>
-    
+
   </div>
 </template>
 

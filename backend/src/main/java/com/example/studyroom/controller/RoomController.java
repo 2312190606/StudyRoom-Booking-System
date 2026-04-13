@@ -25,11 +25,11 @@ public class RoomController {
      */
     @GetMapping
     public Result<Page<StudyRoom>> getRooms(
-            @RequestParam(defaultValue = "1") int current,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String location,
             @RequestParam(required = false) Integer floor) {
-        return Result.success(roomService.getRooms(current, size, location, floor));
+        return Result.success(roomService.getRooms(page, size, location, floor));
     }
 
     /**

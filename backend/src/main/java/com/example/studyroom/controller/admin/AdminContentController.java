@@ -14,7 +14,7 @@ import java.util.List;
  * 管理员内容管理控制器 (公告与轮播图)
  */
 @RestController
-@RequestMapping("/api/admin/content")
+@RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminContentController {
 

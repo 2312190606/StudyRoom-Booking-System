@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,5 +28,21 @@ public class AdminDashboardController {
     @GetMapping("/stats")
     public Result<Map<String, Object>> getStats() {
         return Result.success(adminService.getDashboardStats());
+    }
+
+    /**
+     * 获取自习室利用率
+     */
+    @GetMapping("/utilization")
+    public Result<Map<String, Object>> getUtilization() {
+        return Result.success(adminService.getDashboardUtilization());
+    }
+
+    /**
+     * 获取用户增长趋势
+     */
+    @GetMapping("/users-trend")
+    public Result<List<Map<String, Object>>> getUsersTrend() {
+        return Result.success(adminService.getDashboardUsersTrend());
     }
 }

@@ -1,15 +1,47 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { showToast } from 'vant'
+import { register } from '../api/auth'
 
 const router = useRouter()
-const account = ref('')
+const username = ref('')
 const password = ref('')
 const confirmPassword = ref('')
+const loading = ref(false)
 
-const handleRegister = () => {
-  console.log('Register attempt', { account: account.value, password: password.value })
-  router.push('/login')
+const handleRegister = async () => {
+  // 校验
+  if (!username.value.trim()) {
+    showToast('请输入账号')
+    return
+  }
+  if (!password.value) {
+    showToast('请输入密码')
+    return
+  }
+  if (password.value !== confirmPassword.value) {
+    showToast('两次密码不一致')
+    return
+  }
+  if (password.value.length < 6) {
+    showToast('密码至少6位')
+    return
+  }
+
+  loading.value = true
+  try {
+    await register({
+      username: username.value.trim(),
+      password: password.value
+    })
+    showToast('注册成功，请登录')
+    router.push('/login')
+  } catch (error) {
+    console.error('注册失败', error)
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -33,14 +65,14 @@ const handleRegister = () => {
       <p class="text-[14px] text-gray-400 font-medium mb-10 text-center tracking-wide">加入静学自习室，开启专注时刻</p>
 
       <form @submit.prevent="handleRegister" class="w-full flex-col flex gap-5">
-        
+
         <div class="flex flex-col gap-2.5">
           <label class="text-[13px] font-bold text-gray-700 select-none">学号 / 手机号</label>
           <div class="relative flex items-center group">
             <div class="absolute left-4.5 text-gray-400 transition-colors group-focus-within:text-[#5A52FF] z-10">
               <svg class="w-5 h-5 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
             </div>
-            <input v-model="account" type="text" placeholder="设置您的账号" class="w-full bg-[#f8f9fc] border-2 border-transparent focus:bg-white focus:border-[#5A52FF]/30 transition-all rounded-[1rem] py-4 pl-[3.5rem] pr-5 text-[14px] outline-none placeholder-gray-400 text-gray-900 font-semibold" required />
+            <input v-model="username" type="text" placeholder="设置您的账号" class="w-full bg-[#f8f9fc] border-2 border-transparent focus:bg-white focus:border-[#5A52FF]/30 transition-all rounded-[1rem] py-4 pl-[3.5rem] pr-5 text-[15px] outline-none placeholder-gray-400 text-gray-900 font-semibold" required />
           </div>
         </div>
 
@@ -50,7 +82,7 @@ const handleRegister = () => {
             <div class="absolute left-4.5 text-gray-400 transition-colors group-focus-within:text-[#5A52FF] z-10">
               <svg class="w-5 h-5 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
             </div>
-            <input v-model="password" type="password" placeholder="设置密码" class="w-full bg-[#f8f9fc] border-2 border-transparent focus:bg-white focus:border-[#5A52FF]/30 transition-all rounded-[1rem] py-4 pl-[3.5rem] pr-5 text-[14px] outline-none placeholder-gray-400 text-gray-900 font-semibold" required />
+            <input v-model="password" type="password" placeholder="设置密码" class="w-full bg-[#f8f9fc] border-2 border-transparent focus:bg-white focus:border-[#5A52FF]/30 transition-all rounded-[1rem] py-4 pl-[3.5rem] pr-5 text-[15px] outline-none placeholder-gray-400 text-gray-900 font-semibold" required />
           </div>
         </div>
 
@@ -60,17 +92,17 @@ const handleRegister = () => {
             <div class="absolute left-4.5 text-gray-400 transition-colors group-focus-within:text-[#5A52FF] z-10">
               <svg class="w-5 h-5 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
             </div>
-            <input v-model="confirmPassword" type="password" placeholder="再次输入密码" class="w-full bg-[#f8f9fc] border-2 border-transparent focus:bg-white focus:border-[#5A52FF]/30 transition-all rounded-[1rem] py-4 pl-[3.5rem] pr-5 text-[14px] outline-none placeholder-gray-400 text-gray-900 font-semibold" required />
+            <input v-model="confirmPassword" type="password" placeholder="再次输入密码" class="w-full bg-[#f8f9fc] border-2 border-transparent focus:bg-white focus:border-[#5A52FF]/30 transition-all rounded-[1rem] py-4 pl-[3.5rem] pr-5 text-[15px] outline-none placeholder-gray-400 text-gray-900 font-semibold" required />
           </div>
         </div>
 
         <div class="mt-6 flex flex-col gap-3.5 w-full">
-          <button type="submit" class="w-full bg-[#5A52FF] text-white rounded-[1rem] py-4 text-[15px] font-bold shadow-[0_6px_20px_rgba(90,82,255,0.3)] hover:bg-[#4a42e5] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(90,82,255,0.4)] transition-all flex items-center justify-center gap-2 group border-none cursor-pointer" style="color: white !important;">
-            立即注册 
+          <button type="submit" class="w-full bg-[#5A52FF] text-white rounded-[1rem] py-4 text-base font-bold shadow-[0_6px_20px_rgba(90,82,255,0.3)] hover:bg-[#4a42e5] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(90,82,255,0.4)] transition-all flex items-center justify-center gap-2 group border-none cursor-pointer" style="color: white !important;">
+            立即注册
             <svg class="w-[18px] h-[18px] transition-transform group-hover:translate-x-1" style="color: white !important;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
           </button>
-          
-          <button type="button" @click="$router.push('/login')" class="w-full bg-white text-[#5A52FF] border-2 border-[#5A52FF]/10 rounded-[1rem] py-[14px] text-[14px] font-bold hover:bg-[#F7F8FA] hover:border-[#5A52FF]/20 transition-all focus:outline-none focus:ring-4 focus:ring-[#5A52FF]/10 active:bg-gray-50">
+
+          <button type="button" @click="$router.push('/login')" class="w-full bg-white text-[#5A52FF] border-2 border-[#5A52FF]/10 rounded-[1rem] py-4 text-[15px] font-bold hover:bg-[#F7F8FA] hover:border-[#5A52FF]/20 transition-all focus:outline-none focus:ring-4 focus:ring-[#5A52FF]/10 active:bg-gray-50">
             已有账号？返回登录
           </button>
         </div>

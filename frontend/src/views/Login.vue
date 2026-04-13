@@ -1,15 +1,52 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { showToast } from 'vant'
+import { login } from '../api/auth'
+import { getUserProfile } from '../api/user'
 
 const router = useRouter()
 const account = ref('')
 const password = ref('')
+const loading = ref(false)
 
-const handleLogin = () => {
-  // TODO: 后续接入真实登录逻辑
-  console.log('Login attempt', { account: account.value, password: password.value })
-  router.push('/')
+const handleLogin = async () => {
+  // 校验
+  if (!account.value.trim()) {
+    showToast('请输入账号')
+    return
+  }
+  if (!password.value) {
+    showToast('请输入密码')
+    return
+  }
+
+  loading.value = true
+  try {
+    const token = await login({
+      username: account.value.trim(),
+      password: password.value
+    })
+    // 保存 token
+    localStorage.setItem('token', token)
+
+    // 获取用户信息并保存角色
+    try {
+      const profile = await getUserProfile()
+      localStorage.setItem('userRole', profile.role === 1 ? 'admin' : 'user')
+      localStorage.setItem('userName', profile.username || '')
+    } catch (e) {
+      console.error('获取用户信息失败', e)
+    }
+
+    showToast('登录成功')
+    router.push('/home')
+  } catch (error) {
+    // 错误已在 api/client.js 的拦截器中处理
+    console.error('登录失败', error)
+  } finally {
+    loading.value = false
+  }
 }
 
 const handleRegister = () => {
@@ -53,8 +90,8 @@ const handleRegister = () => {
             <input 
               v-model="account" 
               type="text" 
-              placeholder="请输入您的账号" 
-              class="w-full bg-[#f8f9fc] border-2 border-transparent focus:bg-white focus:border-[#5A52FF]/30 transition-all rounded-[1rem] py-4 pl-[3.5rem] pr-5 text-[14px] outline-none placeholder-gray-400 text-gray-900 font-semibold"
+              placeholder="请输入账号/手机号"
+              class="w-full bg-[#f8f9fc] border-2 border-transparent focus:bg-white focus:border-[#5A52FF]/30 transition-all rounded-[1rem] py-4 pl-[3.5rem] pr-5 text-[15px] outline-none placeholder-gray-400 text-gray-900 font-semibold"
             />
           </div>
         </div>
@@ -63,7 +100,6 @@ const handleRegister = () => {
         <div class="flex flex-col gap-2.5 mt-2">
           <div class="flex items-center justify-between">
             <label class="text-[13px] font-bold text-gray-700 select-none">登录密码</label>
-            <a href="#" tabindex="-1" class="text-[12px] font-bold text-[#5A52FF] opacity-90 hover:opacity-100 hover:text-indigo-800 transition-colors">忘记密码？</a>
           </div>
           <div class="relative flex items-center group">
             <div class="absolute left-4.5 text-gray-400 transition-colors group-focus-within:text-[#5A52FF] z-10">
@@ -72,8 +108,8 @@ const handleRegister = () => {
             <input 
               v-model="password" 
               type="password" 
-              placeholder="请输入您的密码" 
-              class="w-full bg-[#f8f9fc] border-2 border-transparent focus:bg-white focus:border-[#5A52FF]/30 transition-all rounded-[1rem] py-4 pl-[3.5rem] pr-5 text-[14px] outline-none placeholder-gray-400 text-gray-900 font-semibold"
+              placeholder="请输入您的密码"
+              class="w-full bg-[#f8f9fc] border-2 border-transparent focus:bg-white focus:border-[#5A52FF]/30 transition-all rounded-[1rem] py-4 pl-[3.5rem] pr-5 text-[15px] outline-none placeholder-gray-400 text-gray-900 font-semibold"
             />
           </div>
         </div>
@@ -81,20 +117,21 @@ const handleRegister = () => {
         <!-- Actions -->
         <div class="mt-6 flex flex-col gap-3.5 w-full">
           <!-- Submit Button -->
-          <button 
-            type="submit" 
-            class="w-full bg-[#5A52FF] text-white rounded-[1rem] py-4 text-[15px] font-bold shadow-[0_6px_20px_rgba(90,82,255,0.3)] hover:bg-[#4a42e5] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(90,82,255,0.4)] transition-all flex items-center justify-center gap-2 group border-none cursor-pointer"
+          <button
+            type="submit"
+            :disabled="loading"
+            class="w-full bg-[#5A52FF] text-white rounded-[1rem] py-4 text-base font-bold shadow-[0_6px_20px_rgba(90,82,255,0.3)] hover:bg-[#4a42e5] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(90,82,255,0.4)] transition-all flex items-center justify-center gap-2 group border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             style="color: white !important;"
           >
-            <span class="text-white" style="color: white !important;">立即登录</span>
-            <svg class="w-[18px] h-[18px] text-white transition-transform group-hover:translate-x-1" style="color: white !important;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            <span class="text-white" style="color: white !important;">{{ loading ? '登录中...' : '立即登录' }}</span>
+            <svg v-if="!loading" class="w-[18px] h-[18px] text-white transition-transform group-hover:translate-x-1" style="color: white !important;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
           </button>
-          
+
           <!-- Register Button (User request: 下方要有注册按钮) -->
-          <button 
-            type="button" 
-            @click="handleRegister" 
-            class="w-full bg-white text-[#5A52FF] border-2 border-[#5A52FF]/10 rounded-[1rem] py-[14px] text-[14px] font-bold hover:bg-[#F7F8FA] hover:border-[#5A52FF]/20 transition-all focus:outline-none focus:ring-4 focus:ring-[#5A52FF]/10 active:bg-gray-50"
+          <button
+            type="button"
+            @click="handleRegister"
+            class="w-full bg-white text-[#5A52FF] border-2 border-[#5A52FF]/10 rounded-[1rem] py-4 text-[15px] font-bold hover:bg-[#F7F8FA] hover:border-[#5A52FF]/20 transition-all focus:outline-none focus:ring-4 focus:ring-[#5A52FF]/10 active:bg-gray-50"
           >
             注册新账号
           </button>

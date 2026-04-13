@@ -8,33 +8,33 @@ const faqs = [
   {
     id: '1',
     title: '如何进行在线预约？',
-    content: '在首页找到您心仪的自习室，点击进入座位图视图。选择绿色的可用座位，设定预约起止时间段，点击“确认预约”即可。系统将为您保留座位。'
+    content: '在首页找到您心仪的自习室，点击进入座位图视图。选择绿色的可用座位，设定预约起止时间段，点击”确认预约”即可。系统将为您保留座位。'
   },
   {
     id: '2',
     title: '签到与退座流程是怎样的？',
-    content: '到达自习室后，请在预约时间开始后的15分钟内，通过系统“我的预约”界面点击对应记录进行签到。结束学习后，点击“结束自习”释放座位，方便他人使用。'
+    content: '到达自习室后，请在预约时间开始后的15分钟内，通过系统”我的预约”界面点击对应记录进行签到。结束学习后，点击”结束自习”释放座位，方便他人使用。'
   },
   {
     id: '3',
     title: '预约可以提前多久取消？',
-    content: '如果您因故无法前往，请务必在预约起始时间前30分钟取消。超时未签到将计入“迟到”状态，多次违约将影响您的个人信用分。'
+    content: '如果您因故无法前往，请务必在预约起始时间前取消。超过预约开始时间后取消将被扣除10分信誉分。'
   },
   {
     id: '4',
-    title: '信用分有什么作用？',
-    content: '初始信用分为100。按时履约加2分，违约/迟到扣除5-10分。当信用分低于60分时，将进入黑名单，暂缓预约权限7天。'
+    title: '信誉分有什么作用？',
+    content: '初始信誉分为100分。正常签到加5分，每天签到可自动获得5分奖励。超过预约开始时间未签到或取消预约扣10分。当信誉分低于60分时，账号将被自动禁用。'
   },
   {
     id: '5',
     title: '自习室内可以进行讨论吗？',
-    content: '静学自习室旨在提供极度安静的学习环境。除专门划出的“研讨区”外，所有区域禁止大声喧哗、外放音频及高分贝交流。'
+    content: '静学自习室旨在提供极度安静的学习环境。除专门划出的”研讨区”外，所有区域禁止大声喧哗、外放音频及高分贝交流。'
   }
 ]
 
 const rules = [
   { title: '一人一座', icon: 'User', desc: '系统实行实名制预约，禁止代替占座或非法倒卖资源。' },
-  { title: '准时签到', icon: 'Clock', desc: '迟到超过15分钟且未操作，预约将自动释放并计入违约。' },
+  { title: '准时签到', icon: 'Clock', desc: '请在预约时间开始后尽快签到，正常签到可获得5分信誉分奖励。' },
   { title: '文明自习', icon: 'Info', desc: '请保持周围环境整洁，离开时请随手带走垃圾。' }
 ]
 </script>
@@ -52,9 +52,9 @@ const rules = [
             <button @click="$router.back()" class="w-10 h-10 rounded-full bg-indigo-50 text-[#5A52FF] flex items-center justify-center hover:bg-indigo-100 transition border-none cursor-pointer">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
             </button>
-            <h1 class="text-3xl font-black text-gray-900 tracking-tight">使用指南 & FAQ</h1>
+            <h1 class="text-4xl font-black text-gray-900 tracking-tight">使用指南 & FAQ</h1>
           </div>
-          <p class="text-gray-400 font-bold ml-14">帮助您更好地享受静学带来的专注体验</p>
+          <p class="text-gray-400 font-bold ml-14 text-[15px]">帮助您更好地享受静学带来的专注体验</p>
         </div>
       </div>
 
@@ -91,9 +91,9 @@ const rules = [
             <van-collapse v-model="activeNames" accordion border="false">
               <van-collapse-item v-for="faq in faqs" :key="faq.id" :name="faq.id" class="!border-none">
                 <template #title>
-                  <span class="text-[15px] font-black text-gray-800">{{ faq.title }}</span>
+                  <span class="text-base font-black text-gray-800">{{ faq.title }}</span>
                 </template>
-                <div class="text-[14px] font-medium text-gray-500 leading-relaxed py-2">
+                <div class="text-[15px] font-medium text-gray-500 leading-relaxed py-2">
                   {{ faq.content }}
                 </div>
               </van-collapse-item>

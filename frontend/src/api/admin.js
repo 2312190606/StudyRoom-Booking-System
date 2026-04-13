@@ -26,6 +26,10 @@ export function updateRoom(id, data) {
   return apiClient.put(`/admin/rooms/${id}`, data);
 }
 
+export function updateMaintenanceSeats(id, maintenanceSeats) {
+  return apiClient.put(`/admin/rooms/${id}/maintenance`, { maintenanceSeats });
+}
+
 export function deleteRoom(id) {
   return apiClient.delete(`/admin/rooms/${id}`);
 }
@@ -52,8 +56,20 @@ export function getAdminUsers(params) {
   return apiClient.get('/admin/users', { params });
 }
 
+export function createUser(data) {
+  return apiClient.post('/admin/users', data);
+}
+
+export function deleteUser(id) {
+  return apiClient.delete(`/admin/users/${id}`);
+}
+
 export function updateUserStatus(id, data) {
   return apiClient.put(`/admin/users/${id}/status`, data);
+}
+
+export function updateUser(id, data) {
+  return apiClient.put(`/admin/users/${id}`, data);
 }
 
 // -- 系统配置与内容管理 --

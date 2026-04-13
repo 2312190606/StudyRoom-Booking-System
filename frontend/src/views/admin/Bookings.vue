@@ -1,17 +1,10 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { showConfirmDialog, showNotify } from 'vant'
+import { ref, computed, onMounted } from 'vue'
+import { showConfirmDialog, showNotify, showLoadingToast } from 'vant'
+import { getAdminReservations, adminCancelReservation } from '../../api/admin'
 
-const bookingsList = ref([
-  { id: 'BK-10294', type: 'STANDARD TYPE', user: '张同学', userId: '20220100', room: 'A区', seat: 'A-08', time: '14:20', duration: '1H', status: '已签到', statusClass: 'bg-emerald-500/10 text-emerald-500', initial: '张' },
-  { id: 'BK-10293', type: 'STANDARD TYPE', user: '李同学', userId: '20220101', room: 'B区', seat: 'B-12', time: '14:15', duration: '2H', status: '预约中', statusClass: 'bg-blue-500/10 text-blue-500', initial: '李' },
-  { id: 'BK-10292', type: 'STANDARD TYPE', user: '王同学', userId: '20220102', room: 'A区', seat: 'A-15', time: '14:10', duration: '1H', status: '已过期', statusClass: 'bg-red-500/10 text-red-500', initial: '王' },
-  { id: 'BK-10291', type: 'STANDARD TYPE', user: '赵同学', userId: '20220103', room: 'C区', seat: 'C-05', time: '14:05', duration: '3H', status: '已签到', statusClass: 'bg-emerald-500/10 text-emerald-500', initial: '赵' },
-  { id: 'BK-10290', type: 'STANDARD TYPE', user: '陈同学', userId: '20220104', room: 'A区', seat: 'A-01', time: '13:50', duration: '2H', status: '已取消', statusClass: 'bg-red-500/10 text-red-500', initial: '陈' },
-  { id: 'BK-10289', type: 'STANDARD TYPE', user: '刘同学', userId: '20220105', room: 'B区', seat: 'B-08', time: '13:45', duration: '1H', status: '已完成', statusClass: 'bg-blue-500/10 text-blue-500', initial: '刘' },
-  { id: 'BK-10288', type: 'STANDARD TYPE', user: '周同学', userId: '20220106', room: 'C区', seat: 'C-10', time: '13:30', duration: '4H', status: '已签到', statusClass: 'bg-emerald-500/10 text-emerald-500', initial: '周' },
-  { id: 'BK-10287', type: 'STANDARD TYPE', user: '吴同学', userId: '20220107', room: 'A区', seat: 'A-22', time: '13:15', duration: '2H', status: '已完成', statusClass: 'bg-blue-500/10 text-blue-500', initial: '吴' }
-])
+const loading = ref(false)
+const bookingsList = ref([])
 
 const activeFilter = ref('全部状态')
 const filters = ['全部状态', '进行中', '已完成', '已取消', '违约记录']
@@ -19,13 +12,77 @@ const searchText = ref('')
 
 // Pagination State
 const currentPage = ref(1)
-const pageSize = 4
+const pageSize = 10
+
+// Load data
+const loadBookings = async () => {
+  loading.value = true
+  try {
+    const data = await getAdminReservations({ page: 1, size: 100 })
+    const records = Array.isArray(data) ? data : (data.records || [])
+    bookingsList.value = records.map(b => {
+      // 状态: 0=已取消, 1=待使用, 2=使用中, 3=已完成, 4=违约
+      let status = '预约中'
+      let statusClass = 'bg-blue-500/10 text-blue-500'
+      if (b.status === 2) {
+        status = '已签到'
+        statusClass = 'bg-emerald-500/10 text-emerald-500'
+      } else if (b.status === 3) {
+        status = '已完成'
+        statusClass = 'bg-emerald-500/10 text-emerald-500'
+      } else if (b.status === 0) {
+        status = '已取消'
+        statusClass = 'bg-red-500/10 text-red-500'
+      } else if (b.status === 4) {
+        status = '违约'
+        statusClass = 'bg-red-500/10 text-red-500'
+      }
+
+      // 座位编号
+      const seatNumber = b.seat?.seatNumber || (b.seat?.positionX && b.seat?.positionY
+        ? String.fromCharCode(64 + b.seat.positionX) + b.seat.positionY
+        : '--')
+
+      return {
+        id: b.id,
+        type: 'STANDARD TYPE',
+        user: b.nickName || b.userName || '未知用户',
+        userId: b.userId,
+        room: b.roomName || '--',
+        seat: seatNumber,
+        time: b.startTime ? b.startTime.substring(0, 11) : '--', // MM-dd HH:mm 取前面部分
+        duration: (() => {
+          if (b.startTime && b.endTime) {
+            // 解析 MM-dd HH:mm 格式
+            const startParts = b.startTime.substring(11).split(':').map(Number)
+            const endParts = b.endTime.substring(11).split(':').map(Number)
+            const startMins = startParts[0] * 60 + startParts[1]
+            const endMins = endParts[0] * 60 + endParts[1]
+            const hours = (endMins - startMins) / 60
+            return `${hours.toFixed(1)}H`
+          }
+          return '--'
+        })(),
+        status,
+        statusClass,
+        initial: (b.nickName || b.userName || '未').charAt(0)
+      }
+    })
+  } catch (error) {
+    console.error('加载预约记录失败', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadBookings()
+})
 
 // Computed Logic
 const filteredBookings = computed(() => {
   let list = bookingsList.value
-  
-  // Filter by Status
+
   if (activeFilter.value !== '全部状态') {
     if (activeFilter.value === '进行中') {
       list = list.filter(b => b.status === '预约中' || b.status === '已签到')
@@ -36,13 +93,12 @@ const filteredBookings = computed(() => {
     }
   }
 
-  // Filter by Search
   const query = searchText.value.trim().toLowerCase()
   if (query) {
-    list = list.filter(b => 
-      b.id.toLowerCase().includes(query) || 
+    list = list.filter(b =>
+      b.id.toString().toLowerCase().includes(query) ||
       b.user.toLowerCase().includes(query) ||
-      b.userId.toLowerCase().includes(query)
+      b.userId.toString().toLowerCase().includes(query)
     )
   }
 
@@ -67,9 +123,15 @@ const handleDelete = (id) => {
     title: '确认删除',
     message: '确定要删除这条预约记录吗？此操作不可撤销。',
     theme: 'round-button'
-  }).then(() => {
-    bookingsList.value = bookingsList.value.filter(b => b.id !== id)
-    showNotify({ type: 'success', message: '记录已成功删除' })
+  }).then(async () => {
+    showLoadingToast({ message: '删除中...', forbidClick: true })
+    try {
+      await adminCancelReservation(id)
+      showNotify({ type: 'success', message: '记录已成功删除' })
+      await loadBookings()
+    } catch (error) {
+      console.error('删除失败', error)
+    }
   }).catch(() => {})
 }
 </script>
@@ -97,7 +159,7 @@ const handleDelete = (id) => {
           </div>
         </div>
       </div>
-      
+
       <div class="flex flex-wrap gap-3">
         <button v-for="f in filters" :key="f" @click="activeFilter = f; currentPage = 1"
           :class="activeFilter === f ? 'bg-[#5A52FF] text-white shadow-[0_4px_12px_rgba(90,82,255,0.3)]' : 'bg-[#1A1F30] text-gray-400 hover:text-white border border-white/5'"
@@ -107,8 +169,13 @@ const handleDelete = (id) => {
       </div>
     </div>
 
+    <!-- Loading State -->
+    <div v-if="loading" class="flex items-center justify-center py-20">
+      <div class="text-gray-500 font-bold">加载中...</div>
+    </div>
+
     <!-- Table -->
-    <div class="bg-[#121624] border border-[#1C2136] rounded-[32px] overflow-hidden shadow-2xl relative">
+    <div v-else class="bg-[#121624] border border-[#1C2136] rounded-[32px] overflow-hidden shadow-2xl relative">
       <table class="w-full text-left border-collapse">
         <thead class="bg-[#1A1F30]/50 border-b border-[#1C2136]">
           <tr>
@@ -138,8 +205,8 @@ const handleDelete = (id) => {
               </div>
             </td>
             <td class="px-8 py-7 border-r border-white/5">
-              <div class="text-[14px] font-black text-white tracking-wide mb-1.5">{{ b.room }}</div>
-              <div class="text-[11px] text-[#5A52FF] font-black tracking-[0.15em] uppercase ring-1 ring-[#5A52FF]/30 px-2 py-0.5 rounded-md inline-block">{{ b.seat }}</div>
+              <div class="text-[14px] font-black text-white tracking-wide mb-1.5">{{ b.room || '--' }}</div>
+              <div class="text-[11px] text-[#5A52FF] font-black tracking-[0.15em] uppercase ring-1 ring-[#5A52FF]/30 px-2 py-0.5 rounded-md inline-block">{{ b.seat || '--' }}</div>
             </td>
             <td class="px-8 py-7 border-r border-white/5">
               <div class="text-[14px] font-black text-white tracking-widest mb-1.5">{{ b.time }}</div>
@@ -172,18 +239,18 @@ const handleDelete = (id) => {
         <p class="text-gray-500 font-black tracking-widest uppercase text-xs">No records found</p>
       </div>
 
-      <!-- Consistent Info Bar (Optional, can be hidden if not needed) -->
+      <!-- Consistent Info Bar -->
       <div class="px-8 py-5 bg-[#1A1F30]/30 border-t border-[#1C2136] text-[11px] font-bold text-gray-600 tracking-wide">
         Showing {{ filteredBookings.length }} records total
       </div>
     </div>
 
-    <!-- Pagination (Style Matched to Announcements) -->
+    <!-- Pagination -->
     <div v-if="totalPages > 1" class="mt-4 flex items-center justify-center gap-2">
       <button @click="setPage(currentPage - 1)" :disabled="currentPage === 1" class="w-12 h-12 rounded-2xl bg-[#121624] border border-[#1C2136] text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#5A52FF] transition-all">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
       </button>
-      
+
       <div class="flex items-center gap-2 px-6 py-3 bg-[#121624] border border-[#1C2136] rounded-2xl">
         <span class="text-[14px] font-black text-[#5A52FF]">{{ currentPage }}</span>
         <span class="text-[12px] font-black text-gray-550 opacity-40">/</span>

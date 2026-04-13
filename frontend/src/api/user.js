@@ -9,7 +9,7 @@ export function getUserProfile() {
 
 /**
  * 修改个人资料
- * @param {Object} data { nickname, avatar, phone }
+ * @param {Object} data { avatar, phone, email }
  */
 export function updateUserProfile(data) {
   return apiClient.put('/user/profile', data);
@@ -43,4 +43,11 @@ export function getFavorites() {
  */
 export function quickReserveFavorite(id) {
   return apiClient.post(`/favorites/${id}/quick-reserve`);
+}
+
+/**
+ * 获取信誉分
+ */
+export function getCreditScore() {
+  return apiClient.get('/user/credit-score');
 }

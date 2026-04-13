@@ -1,11 +1,14 @@
 package com.example.studyroom.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.studyroom.common.BaseException;
 import com.example.studyroom.mapper.ReservationMapper;
 import com.example.studyroom.mapper.SeatMapper;
+import com.example.studyroom.mapper.StudyRoomMapper;
 import com.example.studyroom.model.entity.Reservation;
 import com.example.studyroom.model.entity.Seat;
+import com.example.studyroom.model.entity.StudyRoom;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +27,12 @@ public class ReservationService {
 
     @Autowired
     private SeatMapper seatMapper;
+
+    @Autowired
+    private StudyRoomMapper studyRoomMapper;
+
+    @Autowired
+    private UserService userService;
 
     /**
      * 提交预约申请
@@ -48,7 +57,7 @@ public class ReservationService {
         // 重叠条件: (start1 < end2) AND (end1 > start2)
         Long count = reservationMapper.selectCount(new LambdaQueryWrapper<Reservation>()
                 .eq(Reservation::getSeatId, seatId)
-                .ne(Reservation::getStatus, 0) // 排除已取消的
+                .notIn(Reservation::getStatus, 0, -1, 3) // 排除已取消、已删除、已完成的
                 .lt(Reservation::getStartTime, endTime)
                 .gt(Reservation::getEndTime, startTime));
         
@@ -63,16 +72,32 @@ public class ReservationService {
         reservation.setStartTime(startTime);
         reservation.setEndTime(endTime);
         reservation.setStatus(1); // 待使用
+        reservation.setExtended(0); // 未延后
         reservationMapper.insert(reservation);
     }
 
     /**
      * 获取我的预约列表
      */
-    public List<Reservation> getMyReservations(Long userId) {
-        return reservationMapper.selectList(new LambdaQueryWrapper<Reservation>()
+    public Page<Reservation> getMyReservations(Long userId, int page, int size) {
+        Page<Reservation> pageResult = reservationMapper.selectPage(new Page<>(page, size),
+                new LambdaQueryWrapper<Reservation>()
                 .eq(Reservation::getUserId, userId)
+                .ne(Reservation::getStatus, -1) // 排除已删除的
                 .orderByDesc(Reservation::getCreatedAt));
+
+        // 填充座位和自习室信息
+        for (Reservation r : pageResult.getRecords()) {
+            Seat seat = seatMapper.selectById(r.getSeatId());
+            if (seat != null) {
+                r.setSeat(seat);
+                StudyRoom room = studyRoomMapper.selectById(seat.getRoomId());
+                if (room != null) {
+                    r.setRoomName(room.getName());
+                }
+            }
+        }
+        return pageResult;
     }
 
     /**
@@ -80,6 +105,18 @@ public class ReservationService {
      */
     public Reservation getReservationById(Long id) {
         return reservationMapper.selectById(id);
+    }
+
+    /**
+     * 删除预约记录（软删除）
+     */
+    public void deleteReservation(Long id, Long userId) {
+        Reservation reservation = reservationMapper.selectById(id);
+        if (reservation == null || !reservation.getUserId().equals(userId)) {
+            throw new BaseException("预约不存在或无权操作");
+        }
+        reservation.setStatus(-1); // 已删除
+        reservationMapper.updateById(reservation);
     }
 
     /**
@@ -94,6 +131,11 @@ public class ReservationService {
             throw new BaseException("当前状态不可取消");
         }
 
+        // 如果已超过开始时间但未签到，算违约，扣10分
+        if (LocalDateTime.now().isAfter(reservation.getStartTime())) {
+            userService.deductCreditScore(userId, 10);
+        }
+
         reservation.setStatus(0); // 已取消
         reservationMapper.updateById(reservation);
     }
@@ -106,8 +148,11 @@ public class ReservationService {
         if (reservation == null || !reservation.getUserId().equals(userId)) {
             throw new BaseException("预约不存在或无权操作");
         }
-        if (reservation.getStatus() != 2) {
-            throw new BaseException("只有正在使用中的预约可以延长");
+        if (reservation.getStatus() != 1 && reservation.getStatus() != 2) {
+            throw new BaseException("当前状态不可延长");
+        }
+        if (reservation.getExtended() != null && reservation.getExtended() == 1) {
+            throw new BaseException("已延后过一次，无法再次延后");
         }
 
         LocalDateTime newEndTime = reservation.getEndTime().plusMinutes(30);
@@ -116,7 +161,7 @@ public class ReservationService {
         Long count = reservationMapper.selectCount(new LambdaQueryWrapper<Reservation>()
                 .eq(Reservation::getSeatId, reservation.getSeatId())
                 .ne(Reservation::getId, id)
-                .ne(Reservation::getStatus, 0)
+                .notIn(Reservation::getStatus, 0, -1, 3) // 排除已取消、已删除、已完成的
                 .lt(Reservation::getStartTime, newEndTime)
                 .gt(Reservation::getEndTime, reservation.getEndTime()));
         
@@ -125,6 +170,7 @@ public class ReservationService {
         }
 
         reservation.setEndTime(newEndTime);
+        reservation.setExtended(1);
         reservationMapper.updateById(reservation);
     }
 
@@ -139,11 +185,38 @@ public class ReservationService {
         if (reservation.getStatus() != 1) {
             throw new BaseException("当前状态不可签到");
         }
-        
+
         // 这里可以添加定位校验逻辑
-        
+
         reservation.setCheckInTime(LocalDateTime.now());
         reservation.setStatus(2); // 使用中
+        reservationMapper.updateById(reservation);
+
+        // 签到成功，增加5分信誉分
+        userService.addCreditScore(userId, 5);
+    }
+
+    /**
+     * 结束学习
+     */
+    @Transactional
+    public void endStudy(Long id, Long userId) {
+        Reservation reservation = reservationMapper.selectById(id);
+        if (reservation == null || !reservation.getUserId().equals(userId)) {
+            throw new BaseException("预约不存在或无权操作");
+        }
+        if (reservation.getStatus() != 2) {
+            throw new BaseException("当前状态不可结束");
+        }
+
+        // 释放座位（将座位状态重置为可用）
+        Seat seat = seatMapper.selectById(reservation.getSeatId());
+        if (seat != null) {
+            seat.setStatus(1); // 可用
+            seatMapper.updateById(seat);
+        }
+
+        reservation.setStatus(3); // 已完成
         reservationMapper.updateById(reservation);
     }
 }

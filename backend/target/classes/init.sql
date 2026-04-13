@@ -17,6 +17,8 @@ CREATE TABLE `users` (
   `email` varchar(50) DEFAULT NULL COMMENT '邮箱',
   `role` int(11) DEFAULT '2' COMMENT '角色 (1: 管理员, 2: 普通用户)',
   `status` int(11) DEFAULT '1' COMMENT '状态 (0: 禁用, 1: 正常)',
+  `credit_score` int(11) DEFAULT '100' COMMENT '信誉分 (初始100, 低于60禁用)',
+  `last_credit_time` datetime DEFAULT NULL COMMENT '上次信誉增加时间',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -67,6 +69,7 @@ CREATE TABLE `reservations` (
   `end_time` datetime NOT NULL,
   `check_in_time` datetime DEFAULT NULL,
   `status` int(11) DEFAULT '1' COMMENT '0:取消, 1:待使用, 2:使用中, 3:已完成, 4:违约',
+  `extended` int(11) DEFAULT '0' COMMENT '0:未延后, 1:已延后',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

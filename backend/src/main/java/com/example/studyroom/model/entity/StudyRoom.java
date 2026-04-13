@@ -14,19 +14,34 @@ import java.time.LocalTime;
 public class StudyRoom {
     @TableId(type = IdType.AUTO)
     private Long id;
-    
+
     private String name;
-    
+
     private String location;
-    
+
     private Integer floor;
-    
+
     private LocalTime openingTime;
-    
+
     private LocalTime closingTime;
-    
+
     private String description;
-    
+
+    private Integer seatRows;
+
+    private Integer cols;
+
+    private Integer totalSeats;
+
+    private Integer availableSeats;
+
+    private String image;
+
+    /**
+     * 维修中的座位位置，存储JSON格式如 ["1-1", "2-3"]
+     */
+    private String maintenanceSeats;
+
     /**
      * 运营状态 (0: 维护中/关闭, 1: 开放)
      */

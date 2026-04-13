@@ -1,13 +1,12 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 import Navbar from '../components/Navbar.vue'
-
-import { useAnnouncementStore } from '../stores/announcement'
+import { getRooms, getRoomSeats } from '../api/rooms'
+import { createReservation } from '../api/reservations'
 
 const router = useRouter()
-const announcementStore = useAnnouncementStore()
 
 const showAllRooms = ref(false)
 const showSeatModal = ref(false)
@@ -16,89 +15,201 @@ const currentRoom = ref(null)
 const seats = ref([])
 const bookingSuccessMsg = ref(false)
 const showFailToastMsg = ref(false)
+
+// 公告相关
+const announcements = ref([])
 const currentNoticeIdx = ref(0)
 
-// Rotation Logic for Notice Bar
 setInterval(() => {
-  if (announcementStore.publishedAnnouncements.length > 0) {
-    currentNoticeIdx.value = (currentNoticeIdx.value + 1) % announcementStore.publishedAnnouncements.length
+  if (announcements.value.length > 0) {
+    currentNoticeIdx.value = (currentNoticeIdx.value + 1) % announcements.value.length
   }
 }, 4000)
 
+// 加载公告
+const loadAnnouncements = async () => {
+  try {
+    const res = await fetch('/api/public/announcements')
+    const data = await res.json()
+    if (data.code === 200) {
+      announcements.value = data.data || []
+    }
+  } catch (error) {
+    console.error('加载公告失败', error)
+  }
+}
+
+// 常用座位 - 从 localStorage 读取
+const frequentSeat = ref(JSON.parse(localStorage.getItem('frequentSeat') || 'null'))
+const frequentSeatStr = computed(() => {
+  if (!frequentSeat.value) return ""
+  return `${frequentSeat.value.roomName || 'S'}-${frequentSeat.value.seatNumber}`
+})
+const frequentSeatStatus = ref(localStorage.getItem('frequentSeatStatus') || "available")
+
 const modalMode = ref('book') // 'book' or 'setFrequent'
-const frequentSeatStr = ref("A-08")
-const frequentSeatStatus = ref("available")
 const showConfirmModal = ref(false)
 const selectedSeatForFrequent = ref(null)
 
-// 模拟数据 
-const studyRooms = ref([
-  {
-    id: 1,
-    name: '静雅自习室 - A区',
-    location: '图书馆 3 楼',
-    tag: '最静谧',
-    rating: 4.9,
-    seatsLeft: 12,
-    openTime: '07:00-23:00',
-    img: 'https://images.unsplash.com/photo-1568226065403-88229b01c36b?auto=format&fit=crop&q=80&w=600&h=400'
-  },
-  {
-    id: 2,
-    name: '晨曦自习室 - B区',
-    location: '教学楼 C 座',
-    tag: '采光好',
-    rating: 4.7,
-    seatsLeft: 5,
-    openTime: '07:00-23:00',
-    img: 'https://images.unsplash.com/photo-1497215888201-98782f9d519e?auto=format&fit=crop&q=80&w=600&h=400'
-  },
-  {
-    id: 3,
-    name: '极客自习室 - 24h',
-    location: '实训楼 1 楼',
-    tag: '不打烊',
-    rating: 4.8,
-    seatsLeft: 28,
-    openTime: '07:00-23:00',
-    img: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&q=80&w=600&h=400'
+// 真实数据
+const studyRooms = ref([])
+
+// 后端座位状态: 0=维修, 1=可用, 2=占用
+// 前端显示状态: 'maintenance', 'available', 'occupied'
+// 前端预约状态: 'booked' (本地状态，表示已预约)
+const seatStatusMap = {
+  0: 'maintenance',
+  1: 'available',
+  2: 'occupied'
+}
+
+// 将后端座位数据转为前端格式
+const transformSeats = (backendSeats, maintenanceSeats) => {
+  const maintenanceSet = new Set(maintenanceSeats || [])
+  return backendSeats.map(seat => {
+    const posKey = `${seat.positionX}-${seat.positionY}`
+    // 如果座位位置在维修列表中，强制标记为维修
+    const isMaintenance = maintenanceSet.has(posKey) || seat.status === 0
+    // 座位编号使用 row-col 格式（如 "A1", "B2"）
+    const rowLetter = String.fromCharCode(64 + seat.positionX)
+    return {
+      id: seat.id,
+      seatNumber: `${rowLetter}${seat.positionY}`,
+      status: isMaintenance ? 'maintenance' : (seatStatusMap[seat.status] || 'available'),
+      hasPower: seat.hasPower,
+      isWindow: seat.isWindow,
+      positionX: seat.positionX,
+      positionY: seat.positionY
+    }
+  })
+}
+
+// 计算指定自习室的可用座位数
+const getAvailableSeatsCount = (roomId) => {
+  const room = studyRooms.value.find(r => r.id === roomId)
+  if (!room) return 0
+
+  const rows = room.seatRows || 5
+  const cols = room.cols || 8
+  const totalSeats = rows * cols
+
+  // 计算维修中的座位数
+  let maintenanceCount = 0
+  if (room.maintenanceSeats) {
+    try {
+      const list = JSON.parse(room.maintenanceSeats)
+      if (Array.isArray(list)) {
+        maintenanceCount = list.length
+      }
+    } catch (e) {
+      console.error('解析维修座位失败', e, room.maintenanceSeats)
+    }
   }
-])
+
+  console.log('剩余座位计算:', { roomId, rows, cols, totalSeats, maintenanceSeats: room.maintenanceSeats, maintenanceCount, result: totalSeats - maintenanceCount })
+  return totalSeats - maintenanceCount
+}
 
 const totalSeatsLeft = computed(() => {
-  return studyRooms.value.reduce((total, room) => total + room.seatsLeft, 0)
+  return studyRooms.value.reduce((total, room) => total + getAvailableSeatsCount(room.id), 0)
 })
 
 const allRoomsSeats = ref({})
 
-const initRooms = () => {
-  studyRooms.value.forEach(room => {
-    const roomSeats = []
-    for (let i = 0; i < 48; i++) {
-      let status = 'available'
-      const rand = Math.random()
-      if (rand < 0.15) status = 'occupied'
-      else if (rand < 0.20) status = 'maintenance'
-      else if (rand < 0.22) status = 'booked'
-      
-      roomSeats.push({ id: i + 1, status })
-    }
-    allRoomsSeats.value[room.id] = roomSeats
-    room.seatsLeft = roomSeats.filter(s => s.status === 'available').length
-  })
-}
-initRooms()
-
-const generateSeats = () => {
-  if (currentRoom.value) {
-    seats.value = allRoomsSeats.value[currentRoom.value.id]
+// 加载自习室数据
+const loadRooms = async () => {
+  try {
+    const data = await getRooms({ page: 1, size: 100 })
+    studyRooms.value = data.records || []
+  } catch (error) {
+    console.error('加载自习室失败', error)
   }
 }
 
-const openRoomLayout = (roomId, forceMode) => {
+// 加载座位数据
+const loadSeats = async (roomId, maintenanceSeats) => {
+  try {
+    const data = await getRoomSeats(roomId)
+    allRoomsSeats.value[roomId] = transformSeats(data || [], maintenanceSeats || [])
+  } catch (error) {
+    console.error('加载座位失败', error)
+  }
+}
+
+const initRooms = async () => {
+  await loadRooms()
+  // 预加载所有自习室的座位数据
+  for (const room of studyRooms.value) {
+    let maintenanceSeats = []
+    if (room.maintenanceSeats) {
+      try {
+        maintenanceSeats = JSON.parse(room.maintenanceSeats)
+      } catch (e) {}
+    }
+    await loadSeats(room.id, maintenanceSeats)
+  }
+  // 加载公告
+  await loadAnnouncements()
+}
+
+onMounted(() => {
+  initRooms()
+})
+
+const generateSeats = () => {
+  if (currentRoom.value) {
+    const rows = currentRoom.value.seatRows || currentRoom.value.rows || 5
+    const cols = currentRoom.value.cols || 8
+    const expectedCount = rows * cols
+    const cachedSeats = allRoomsSeats.value[currentRoom.value.id] || []
+
+    // 获取维修座位列表
+    let maintenanceSeats = []
+    if (currentRoom.value.maintenanceSeats) {
+      try {
+        maintenanceSeats = JSON.parse(currentRoom.value.maintenanceSeats)
+      } catch (e) {}
+    }
+    const maintenanceSet = new Set(maintenanceSeats)
+
+    // 如果缓存座位数量与期望数量不匹配，重新生成
+    if (cachedSeats.length !== expectedCount) {
+      const generatedSeats = []
+      for (let r = 1; r <= rows; r++) {
+        for (let c = 1; c <= cols; c++) {
+          const rowLetter = String.fromCharCode(64 + r)
+          const posKey = `${r}-${c}`
+          generatedSeats.push({
+            id: `${r}-${c}`,
+            seatNumber: `${rowLetter}${c}`,
+            status: maintenanceSet.has(posKey) ? 'maintenance' : 'available',
+            positionX: r,
+            positionY: c
+          })
+        }
+      }
+      seats.value = generatedSeats
+    } else {
+      seats.value = cachedSeats
+    }
+  }
+}
+
+const openRoomLayout = async (roomId, forceMode) => {
   if (forceMode) modalMode.value = forceMode
-  showAllRooms.value = false 
+  showAllRooms.value = false
+  // 重新加载自习室数据，确保 maintenanceSeats 是最新的
+  await loadRooms()
   currentRoom.value = studyRooms.value.find(r => r.id === roomId)
+  // 获取维修座位列表
+  let maintenanceSeats = []
+  if (currentRoom.value && currentRoom.value.maintenanceSeats) {
+    try {
+      maintenanceSeats = JSON.parse(currentRoom.value.maintenanceSeats)
+    } catch (e) {}
+  }
+  // 每次都强制重新加载座位数据，确保显示最新状态
+  await loadSeats(roomId, maintenanceSeats)
   generateSeats()
   showSeatModal.value = true
 }
@@ -108,31 +219,66 @@ const handleSetFrequent = () => {
   showAllRooms.value = true
 }
 
-const selectSeat = (seat) => {
+const selectSeat = async (seat) => {
   if (modalMode.value === 'setFrequent') {
     selectedSeatForFrequent.value = seat
     showConfirmModal.value = true
   } else {
     if (seat.status !== 'available') return;
-    
-    // Simulate booking visually
-    seat.status = 'booked';
-    currentRoom.value.seatsLeft -= 1;
-    
-    bookingSuccessMsg.value = true;
-    setTimeout(() => {
-      bookingSuccessMsg.value = false;
-      showSeatModal.value = false;
-      router.push({ name: 'reservations' });
-    }, 1200);
+
+    // 检查是否为真实座位ID（数据库ID是数字，"1-1"这种格式是动态生成的无真实记录）
+    const seatId = parseInt(seat.id)
+    if (isNaN(seatId) || !String(seat.id).match(/^\d+$/)) {
+      // 动态生成的座位（row-col格式如"1-1"），提示用户重新创建自习室
+      alert('座位数据异常，请联系管理员在后台重新创建该自习室')
+      return
+    }
+
+    try {
+      // 默认预约时长2小时
+      const now = new Date()
+      const startTime = new Date(now.getTime() + 30 * 60 * 1000) // 30分钟后开始
+      const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000) // 2小时后结束
+
+      // 格式化时间为 yyyy-MM-ddTHH:mm:ss（本地时间）
+      const formatTime = (date) => {
+        const pad = (n) => n.toString().padStart(2, '0')
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+      }
+
+      await createReservation({
+        seatId: seatId,
+        startTime: formatTime(startTime),
+        endTime: formatTime(endTime)
+      })
+
+      bookingSuccessMsg.value = true;
+      setTimeout(() => {
+        bookingSuccessMsg.value = false;
+        showSeatModal.value = false;
+        router.push({ name: 'reservations' });
+      }, 1200);
+    } catch (error) {
+      console.error('预约失败', error)
+    }
   }
 }
 
 const confirmSetFrequent = () => {
   const roomPrefix = currentRoom.value.name.includes('-') ? currentRoom.value.name.split('-')[1].trim()[0] : 'S'
-  const seatNb = selectedSeatForFrequent.value.id.toString().padStart(2, '0')
-  frequentSeatStr.value = `${roomPrefix}-${seatNb}`
+  const seatNb = selectedSeatForFrequent.value.seatNumber || selectedSeatForFrequent.value.id
+  // 保存完整信息到 localStorage
+  const seatInfo = {
+    roomId: currentRoom.value.id,
+    roomName: roomPrefix,
+    seatId: selectedSeatForFrequent.value.id,
+    seatNumber: seatNb,
+    status: selectedSeatForFrequent.value.status
+  }
+  frequentSeat.value = seatInfo
+  localStorage.setItem('frequentSeat', JSON.stringify(seatInfo))
   frequentSeatStatus.value = selectedSeatForFrequent.value.status
+  localStorage.setItem('frequentSeatStatus', frequentSeatStatus.value)
   showConfirmModal.value = false
   showSeatModal.value = false
 }
@@ -141,16 +287,46 @@ const cancelSetFrequent = () => {
   showConfirmModal.value = false
 }
 
-const handleQuickBook = () => {
+const handleQuickBook = async () => {
+  if (!frequentSeat.value) {
+    showFailToastMsg.value = true
+    setTimeout(() => { showFailToastMsg.value = false }, 1500)
+    return
+  }
+
   if (frequentSeatStatus.value !== 'available') {
     showFailToastMsg.value = true
     setTimeout(() => { showFailToastMsg.value = false }, 1500)
-  } else {
+    return
+  }
+
+  try {
+    // 默认预约时长2小时
+    const now = new Date()
+    const startTime = new Date(now.getTime() + 30 * 60 * 1000) // 30分钟后开始
+    const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000) // 2小时后结束
+
+    // 格式化时间为 yyyy-MM-ddTHH:mm:ss（本地时间）
+    const formatTime = (date) => {
+      const pad = (n) => n.toString().padStart(2, '0')
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+    }
+
+    await createReservation({
+      seatId: parseInt(frequentSeat.value.seatId),
+      startTime: formatTime(startTime),
+      endTime: formatTime(endTime)
+    })
+
     bookingSuccessMsg.value = true
     setTimeout(() => {
       bookingSuccessMsg.value = false
       router.push({ name: 'reservations' })
     }, 1200)
+  } catch (error) {
+    console.error('快速预约失败', error)
+    showFailToastMsg.value = true
+    setTimeout(() => { showFailToastMsg.value = false }, 1500)
   }
 }
 </script>
@@ -178,13 +354,13 @@ const handleQuickBook = () => {
       </div>
 
       <!-- Dynamic Notice Bar -->
-      <div v-if="announcementStore.publishedAnnouncements.length > 0" class="bg-[#fef4e8] border border-orange-100 rounded-2xl px-5 py-3.5 flex items-center justify-between text-orange-600 shadow-sm mt-2">
+      <div v-if="announcements.length > 0" class="bg-[#fef4e8] border border-orange-100 rounded-2xl px-5 py-3.5 flex items-center justify-between text-orange-600 shadow-sm mt-2">
         <div class="flex items-center gap-3 text-sm font-black flex-1 overflow-hidden">
           <div class="bg-[#f28e2b] text-white p-1 rounded-lg shadow-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
           </div>
           <div class="flex-1 h-6 relative overflow-hidden">
-            <div v-for="(anno, idx) in announcementStore.publishedAnnouncements" :key="anno.id" 
+            <div v-for="(anno, idx) in announcements" :key="anno.id" 
                  class="absolute inset-0 flex items-center transition-all duration-700 pointer-events-none"
                  :class="{
                    'translate-y-0 opacity-100': currentNoticeIdx === idx,
@@ -211,14 +387,14 @@ const handleQuickBook = () => {
         <div v-for="room in studyRooms" :key="room.id" class="bg-white rounded-[1.25rem] overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition duration-300 group">
           <!-- Image -->
           <div class="h-48 relative bg-gray-200 overflow-hidden">
-            <img :src="room.img" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+            <img :src="room.image" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
             <!-- Tag removed -->
           </div>
           <!-- Body -->
           <div class="p-6 flex flex-col gap-5 flex-1">
             <div>
-              <h3 class="font-bold text-lg text-gray-900">{{ room.name }}</h3>
-              <div class="flex items-center gap-1.5 text-[13px] text-gray-500 mt-1.5 font-medium">
+              <h3 class="font-bold text-xl text-gray-900">{{ room.name }}</h3>
+              <div class="flex items-center gap-1.5 text-[14px] text-gray-500 mt-1.5 font-medium">
                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 {{ room.location }}
               </div>
@@ -231,7 +407,7 @@ const handleQuickBook = () => {
                 </div>
                 <div>
                   <div class="text-[11px] text-gray-400 font-medium">剩余座位</div>
-                  <div class="text-sm font-black text-gray-900 mt-0.5">{{ room.seatsLeft }}</div>
+                  <div class="text-sm font-black text-gray-900 mt-0.5">{{ getAvailableSeatsCount(room.id) }}</div>
                 </div>
               </div>
               
@@ -246,7 +422,7 @@ const handleQuickBook = () => {
               </div>
             </div>
 
-            <button @click="openRoomLayout(room.id, 'book')" class="mt-4 w-full bg-[#0f172a] text-white py-3 rounded-xl text-sm font-bold hover:bg-gray-800 transition shadow-md" style="color: white !important;">
+            <button @click="openRoomLayout(room.id, 'book')" class="mt-4 w-full bg-[#0f172a] text-white py-4 rounded-xl text-[15px] font-bold hover:bg-gray-800 transition shadow-md" style="color: white !important;">
               <span class="text-white" style="color: white !important;">去预选座位</span>
             </button>
           </div>
@@ -265,8 +441,8 @@ const handleQuickBook = () => {
           </div>
         </div>
         <div class="flex items-center gap-4">
-          <button @click="handleSetFrequent" class="px-6 py-3 rounded-xl border border-gray-200 text-gray-700 text-sm font-bold hover:bg-gray-50 transition cursor-pointer bg-white">设置常用</button>
-          <button @click="handleQuickBook" class="px-6 py-3 rounded-xl bg-[#5A52FF] text-white text-sm font-bold hover:bg-[#4a42e5] transition shadow-lg shadow-indigo-200 border-none cursor-pointer flex items-center justify-center" style="color: white !important;">
+          <button @click="handleSetFrequent" class="px-6 py-3.5 rounded-xl border border-gray-200 text-gray-700 text-[15px] font-bold hover:bg-gray-50 transition cursor-pointer bg-white">设置常用</button>
+          <button @click="handleQuickBook" class="px-6 py-3.5 rounded-xl bg-[#5A52FF] text-white text-[15px] font-bold hover:bg-[#4a42e5] transition shadow-lg shadow-indigo-200 border-none cursor-pointer flex items-center justify-center" style="color: white !important;">
             <span class="text-white" style="color: white !important;">一键预约 {{ frequentSeatStr }}</span>
           </button>
         </div>
@@ -297,7 +473,7 @@ const handleQuickBook = () => {
             <div v-for="room in studyRooms" :key="'modal-'+room.id" class="bg-white rounded-[1.25rem] overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition duration-300 group">
               <!-- Image -->
               <div class="h-48 relative bg-gray-200 overflow-hidden">
-                <img :src="room.img" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                <img :src="room.image" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                 <!-- Tag removed -->
               </div>
               <!-- Body -->
@@ -317,7 +493,7 @@ const handleQuickBook = () => {
                     </div>
                     <div>
                       <div class="text-[11px] text-gray-400 font-medium">剩余座位</div>
-                      <div class="text-sm font-black text-gray-900 mt-0.5">{{ room.seatsLeft }}</div>
+                      <div class="text-sm font-black text-gray-900 mt-0.5">{{ getAvailableSeatsCount(room.id) }}</div>
                     </div>
                   </div>
                   
@@ -379,7 +555,8 @@ const handleQuickBook = () => {
         <!-- Seat Grid -->
         <div class="p-8 overflow-y-auto flex-1 flex justify-center items-start bg-gray-100/50">
             <!-- Simulated desk/room area -->
-            <div class="grid grid-cols-6 sm:grid-cols-8 gap-3 sm:gap-4 lg:gap-5 bg-white p-6 md:p-8 rounded-[1.5rem] shadow-sm border border-gray-200">
+            <div class="grid gap-3 sm:gap-4 lg:gap-5 bg-white p-6 md:p-8 rounded-[1.5rem] shadow-sm border border-gray-200"
+                 :style="{ gridTemplateColumns: `repeat(${currentRoom?.cols || 8}, minmax(0, 1fr))` }">
                 <button v-for="seat in seats" :key="seat.id" @click="selectSeat(seat)"
                     :class="{
                         'bg-green-500 hover:bg-green-600 hover:scale-[1.15] active:scale-95 cursor-pointer shadow-[0_4px_12px_rgba(34,197,94,0.3)] z-10': seat.status === 'available',
@@ -390,7 +567,7 @@ const handleQuickBook = () => {
                         'hover:scale-[1.15] active:scale-95 cursor-pointer z-10 hover:shadow-lg': modalMode === 'setFrequent'
                     }"
                     class="w-[2.5rem] h-[2.5rem] sm:w-[3rem] sm:h-[3rem] md:w-[3.5rem] md:h-[3.5rem] rounded-[10px] sm:rounded-xl transition-all duration-300 flex items-center justify-center border border-black/10 group relative border-none p-0 outline-none">
-                    <span class="text-[11px] md:text-[13px] font-black text-white/95 drop-shadow-sm">{{ seat.id }}</span>
+                    <span class="text-[11px] md:text-[13px] font-black text-white/95 drop-shadow-sm">{{ seat.seatNumber }}</span>
                 </button>
             </div>
         </div>
@@ -445,7 +622,7 @@ const handleQuickBook = () => {
         </div>
         
         <div class="p-8 overflow-y-auto flex-1 space-y-6 bg-gray-50/50">
-          <div v-for="anno in announcementStore.publishedAnnouncements" :key="'modal-anno-'+anno.id" class="bg-white p-7 rounded-[2rem] border border-gray-100 shadow-sm transition hover:shadow-md group">
+          <div v-for="anno in announcements" :key="'modal-anno-'+anno.id" class="bg-white p-7 rounded-[2rem] border border-gray-100 shadow-sm transition hover:shadow-md group">
             <div class="flex items-center gap-3 mb-4">
               <span class="px-3 py-1 rounded-lg bg-orange-50 text-orange-500 text-[10px] font-black uppercase tracking-widest">重要通知</span>
               <span class="text-[11px] font-bold text-gray-300">{{ anno.date }}</span>

@@ -1,20 +1,17 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { showConfirmDialog, showNotify } from 'vant'
+import { ref, computed, onMounted } from 'vue'
+import { showConfirmDialog, showNotify, showLoadingToast } from 'vant'
+import { getAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement } from '../../api/announcements'
 
-// Initial Mock Data
-import { useAnnouncementStore } from '../../stores/announcement'
+const loading = ref(false)
+const announcements = ref([])
 
-const store = useAnnouncementStore()
-
-// Search and Pagination State
 const searchText = ref('')
 const currentPage = ref(1)
 const pageSize = 4
 
-// Modal State
 const showModal = ref(false)
-const modalType = ref('create') // 'create' | 'edit'
+const modalType = ref('create')
 const form = ref({
   id: null,
   title: '',
@@ -22,12 +19,35 @@ const form = ref({
   status: '发布中'
 })
 
-// Computed Properties
+const loadAnnouncements = async () => {
+  loading.value = true
+  try {
+    const data = await getAnnouncements({ page: 1, size: 100 })
+    const records = Array.isArray(data) ? data : (data.records || [])
+    announcements.value = records.map(a => ({
+      id: a.id,
+      title: a.title,
+      content: a.content,
+      date: a.createTime ? a.createTime.split('T')[0] : (a.date || '--'),
+      status: a.status === 1 || a.status === 'PUBLISHED' || a.status === '发布中' ? '发布中' : '已下架',
+      statusClass: a.status === 1 || a.status === 'PUBLISHED' || a.status === '发布中' ? 'text-emerald-500 bg-emerald-500/10' : 'text-gray-500 bg-gray-500/10'
+    }))
+  } catch (error) {
+    console.error('加载公告失败', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadAnnouncements()
+})
+
 const filteredAnnouncements = computed(() => {
   const query = searchText.value.trim().toLowerCase()
-  if (!query) return store.announcements
-  return store.announcements.filter(a => 
-    a.title.toLowerCase().includes(query) || 
+  if (!query) return announcements.value
+  return announcements.value.filter(a =>
+    a.title.toLowerCase().includes(query) ||
     a.content.toLowerCase().includes(query)
   )
 })
@@ -39,42 +59,46 @@ const paginatedData = computed(() => {
 
 const totalPages = computed(() => Math.ceil(filteredAnnouncements.value.length / pageSize))
 
-// Actions
 const openCreateModal = () => {
   modalType.value = 'create'
-  form.value = { id: null, title: '', content: '', status: '发布中' }
+  form.value = { id: null, title: '', content: '', status: 1 }
   showModal.value = true
 }
 
 const openEditModal = (anno) => {
   modalType.value = 'edit'
-  form.value = { ...anno }
+  form.value = { ...anno, status: anno.status === '发布中' || anno.status === 1 ? 1 : 0 }
   showModal.value = true
 }
 
-const handleSave = () => {
+const handleSave = async () => {
   if (!form.value.title || !form.value.content) {
     showNotify({ type: 'warning', message: '标题和内容不能为空' })
     return
   }
 
-  if (modalType.value === 'create') {
-    const newId = store.announcements.length > 0 ? Math.max(...store.announcements.map(a => a.id)) + 1 : 1
-    store.addAnnouncement({
-      ...form.value,
-      id: newId,
-      date: new Date().toISOString().split('T')[0],
-      statusClass: form.value.status === '发布中' ? 'text-emerald-500 bg-emerald-500/10' : 'text-gray-500 bg-gray-500/10'
-    })
-    showNotify({ type: 'success', message: '发布成功' })
-  } else {
-    store.updateAnnouncement(form.value.id, {
-      ...form.value,
-      statusClass: form.value.status === '发布中' ? 'text-emerald-500 bg-emerald-500/10' : 'text-gray-500 bg-gray-500/10'
-    })
-    showNotify({ type: 'success', message: '已更新' })
+  showLoadingToast({ message: '保存中...', forbidClick: true })
+  try {
+    if (modalType.value === 'create') {
+      await createAnnouncement({
+        title: form.value.title,
+        content: form.value.content,
+        status: form.value.status
+      })
+      showNotify({ type: 'success', message: '发布成功' })
+    } else {
+      await updateAnnouncement(form.value.id, {
+        title: form.value.title,
+        content: form.value.content,
+        status: form.value.status
+      })
+      showNotify({ type: 'success', message: '已更新' })
+    }
+    showModal.value = false
+    await loadAnnouncements()
+  } catch (error) {
+    console.error('保存失败', error)
   }
-  showModal.value = false
 }
 
 const handleDelete = (id) => {
@@ -82,9 +106,15 @@ const handleDelete = (id) => {
     title: '确认删除',
     message: '确定要删除这条公告吗？删除后不可恢复。',
     theme: 'round-button'
-  }).then(() => {
-    store.deleteAnnouncement(id)
-    showNotify({ type: 'success', message: '已删除' })
+  }).then(async () => {
+    showLoadingToast({ message: '删除中...', forbidClick: true })
+    try {
+      await deleteAnnouncement(id)
+      showNotify({ type: 'success', message: '已删除' })
+      await loadAnnouncements()
+    } catch (error) {
+      console.error('删除失败', error)
+    }
   }).catch(() => {})
 }
 
@@ -103,7 +133,7 @@ const setPage = (page) => {
         <div class="flex items-center gap-3">
           <p class="text-[14px] font-bold text-gray-550 tracking-wider">发布系统公告、维护通知及规则说明</p>
           <div class="px-3 py-1 rounded-full bg-[#1C2136] text-[#5A52FF] text-[11px] font-black tracking-widest uppercase">
-            Total: {{ store.announcements.length }}
+            Total: {{ announcements.length }}
           </div>
         </div>
       </div>
@@ -119,12 +149,25 @@ const setPage = (page) => {
       </div>
     </div>
 
+    <!-- Loading State -->
+    <div v-if="loading" class="flex items-center justify-center py-20">
+      <div class="text-gray-500 font-bold">加载中...</div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="announcements.length === 0" class="py-20 flex flex-col items-center justify-center bg-[#121624] border border-dashed border-[#1C2136] rounded-[32px]">
+      <div class="w-20 h-20 rounded-full bg-[#1A1F30] flex items-center justify-center mb-6">
+        <svg class="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+      </div>
+      <p class="text-gray-500 font-bold">没有找到相关公告</p>
+    </div>
+
     <!-- Announcement List -->
-    <div class="flex flex-col gap-4">
+    <div v-else class="flex flex-col gap-4">
       <transition-group name="list">
         <div v-for="anno in paginatedData" :key="anno.id" class="bg-[#121624] border border-[#1C2136] rounded-[24px] p-7 md:p-8 flex flex-col md:flex-row gap-6 hover:border-[#303753] transition-all group relative overflow-hidden">
           <div class="absolute -right-20 -top-20 w-48 h-48 rounded-full blur-[90px] bg-[#5A52FF]/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-          
+
           <div class="flex-1">
             <div class="flex flex-wrap items-center gap-4 mb-4">
               <span :class="anno.statusClass" class="px-3.5 py-1.5 rounded-xl text-[10px] font-black tracking-widest uppercase shadow-sm">{{ anno.status }}</span>
@@ -133,7 +176,7 @@ const setPage = (page) => {
                 {{ anno.date }}
               </div>
             </div>
-            
+
             <h3 class="text-xl font-black text-white mb-3 tracking-wide group-hover:text-[#5A52FF] transition-colors line-clamp-1">{{ anno.title }}</h3>
             <p class="text-[14px] font-bold text-gray-500 leading-relaxed max-w-[90%] line-clamp-2">{{ anno.content }}</p>
           </div>
@@ -148,14 +191,6 @@ const setPage = (page) => {
           </div>
         </div>
       </transition-group>
-
-      <!-- Empty State -->
-      <div v-if="filteredAnnouncements.length === 0" class="py-20 flex flex-col items-center justify-center bg-[#121624] border border-dashed border-[#1C2136] rounded-[32px]">
-        <div class="w-20 h-20 rounded-full bg-[#1A1F30] flex items-center justify-center mb-6">
-          <svg class="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
-        </div>
-        <p class="text-gray-500 font-bold">没有找到相关公告</p>
-      </div>
     </div>
 
     <!-- Pagination -->
@@ -163,7 +198,7 @@ const setPage = (page) => {
       <button @click="setPage(currentPage - 1)" :disabled="currentPage === 1" class="w-12 h-12 rounded-2xl bg-[#121624] border border-[#1C2136] text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#5A52FF] transition-all">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
       </button>
-      
+
       <div class="flex items-center gap-2 px-6 py-3 bg-[#121624] border border-[#1C2136] rounded-2xl">
         <span class="text-[14px] font-black text-[#5A52FF]">{{ currentPage }}</span>
         <span class="text-[12px] font-black text-gray-550 opacity-40">/</span>
@@ -178,7 +213,7 @@ const setPage = (page) => {
     <!-- Create/Edit Modal -->
     <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div @click="showModal = false" class="absolute inset-0 bg-[#0A0D18]/80 backdrop-blur-md transition-opacity"></div>
-      
+
       <div class="bg-[#121624] border border-[#1C2136] rounded-[32px] w-full max-w-2xl shadow-2xl relative z-10 overflow-hidden animate-modal">
         <div class="px-10 pt-10 pb-8">
           <div class="flex items-center justify-between mb-10">
@@ -196,7 +231,7 @@ const setPage = (page) => {
               <label class="text-[11px] font-black text-[#5A52FF] tracking-[0.2em] uppercase ml-1">公告标题</label>
               <input v-model="form.title" type="text" placeholder="输入公告主标题..." class="bg-[#0A0D18] border-2 border-[#1C2136] rounded-[20px] px-6 py-4 text-[14px] font-bold text-white focus:border-[#5A52FF] transition-all outline-none" />
             </div>
-            
+
             <div class="flex flex-col gap-3">
               <label class="text-[11px] font-black text-[#5A52FF] tracking-[0.2em] uppercase ml-1">公告内容</label>
               <textarea v-model="form.content" rows="6" placeholder="输入公告详细正文内容..." class="bg-[#0A0D18] border-2 border-[#1C2136] rounded-[24px] px-6 py-5 text-[14px] font-bold text-white focus:border-[#5A52FF] transition-all outline-none resize-none leading-relaxed"></textarea>
@@ -205,10 +240,10 @@ const setPage = (page) => {
             <div class="flex flex-col gap-3">
               <label class="text-[11px] font-black text-[#5A52FF] tracking-[0.2em] uppercase ml-1">发布状态</label>
               <div class="flex gap-4">
-                <button v-for="s in ['发布中', '已下架']" :key="s" @click="form.status = s" 
-                  :class="form.status === s ? 'bg-[#5A52FF] text-white border-[#5A52FF]' : 'bg-[#0A0D18] text-gray-500 border-[#1C2136]'"
+                <button v-for="s in [{v:1,l:'发布中'}, {v:0,l:'已下架'}]" :key="s.v" @click="form.status = s.v"
+                  :class="form.status === s.v ? 'bg-[#5A52FF] text-white border-[#5A52FF]' : 'bg-[#0A0D18] text-gray-500 border-[#1C2136]'"
                   class="flex-1 py-4 rounded-2xl text-[13px] font-black transition-all border-2 cursor-pointer shadow-sm">
-                  {{ s }}
+                  {{ s.l }}
                 </button>
               </div>
             </div>

@@ -46,13 +46,16 @@ public class UserService {
     /**
      * 更新用户资料
      */
-    public void updateProfile(Long userId, String nickname, String avatar, String phone, String email) {
+    public void updateProfile(Long userId, String username, String phone) {
         User user = new User();
         user.setId(userId);
-        user.setNickname(nickname);
-        user.setAvatar(avatar);
-        user.setPhone(phone);
-        user.setEmail(email);
+        // 只更新非空字段
+        if (username != null && !username.isEmpty()) {
+            user.setUsername(username);
+        }
+        if (phone != null && !phone.isEmpty()) {
+            user.setPhone(phone);
+        }
         userMapper.updateById(user);
     }
 
@@ -85,5 +88,64 @@ public class UserService {
                 .eq(StudyTimeStat::getUserId, userId)
                 .orderByDesc(StudyTimeStat::getStatDate)
                 .last("LIMIT 30")); // 获取最近30天数据
+    }
+
+    /**
+     * 增加信誉分
+     */
+    public void addCreditScore(Long userId, int points) {
+        User user = userMapper.selectById(userId);
+        if (user == null) return;
+
+        int newScore = user.getCreditScore() + points;
+        if (newScore > 100) newScore = 100; // 最高100分
+        user.setCreditScore(newScore);
+        userMapper.updateById(user);
+    }
+
+    /**
+     * 扣除信誉分
+     */
+    public void deductCreditScore(Long userId, int points) {
+        User user = userMapper.selectById(userId);
+        if (user == null) return;
+
+        int newScore = user.getCreditScore() - points;
+        if (newScore < 0) newScore = 0;
+        user.setCreditScore(newScore);
+
+        // 低于60分自动禁用
+        if (newScore < 60) {
+            user.setStatus(0); // 禁用
+        }
+        userMapper.updateById(user);
+    }
+
+    /**
+     * 检查并执行每日信誉分增加
+     * 每天只能增加一次
+     */
+    public void checkAndAddDailyCredit(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) return;
+
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.time.LocalDateTime lastCredit = user.getLastCreditTime();
+
+        // 如果上次增加时间不是今天，则增加5分
+        if (lastCredit == null || !lastCredit.toLocalDate().equals(now.toLocalDate())) {
+            int newScore = Math.min(user.getCreditScore() + 5, 100);
+            user.setCreditScore(newScore);
+            user.setLastCreditTime(now);
+            userMapper.updateById(user);
+        }
+    }
+
+    /**
+     * 获取用户信誉分
+     */
+    public int getCreditScore(Long userId) {
+        User user = userMapper.selectById(userId);
+        return user != null ? user.getCreditScore() : 100;
     }
 }

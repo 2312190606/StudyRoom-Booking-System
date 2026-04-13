@@ -47,7 +47,25 @@ public class RoomService {
      * 获取自习室座位信息
      */
     public List<Seat> getSeatsByRoomId(Long roomId) {
-        return seatMapper.selectList(new LambdaQueryWrapper<Seat>()
-                .eq(Seat::getRoomId, roomId));
+        StudyRoom room = studyRoomMapper.selectById(roomId);
+        List<Seat> seats = seatMapper.selectList(new LambdaQueryWrapper<Seat>()
+                .eq(Seat::getRoomId, roomId)
+                .orderByAsc(Seat::getPositionX, Seat::getPositionY));
+
+        // 标记维修中的座位
+        if (room != null && room.getMaintenanceSeats() != null) {
+            String[] maintenancePositions = room.getMaintenanceSeats()
+                    .replace("[", "").replace("]", "").replace("\"", "").split(",");
+            for (Seat seat : seats) {
+                String pos = seat.getPositionX() + "-" + seat.getPositionY();
+                for (String m : maintenancePositions) {
+                    if (m.trim().equals(pos)) {
+                        seat.setStatus(0); // 维修中
+                        break;
+                    }
+                }
+            }
+        }
+        return seats;
     }
 }

@@ -14,6 +14,7 @@
 # IDE
 **/.idea/
 **/.vscode/
+**/.claude/
 
 # 系统文件
 .DS_Store
@@ -23,8 +24,12 @@ GEMINI.md
 
 **/api.md
 **/backend.md
+/backend/target/
 
 # 数据库数据目录
 mysql-data/
 redis-data/
 
+
+# Logs
+build.log
