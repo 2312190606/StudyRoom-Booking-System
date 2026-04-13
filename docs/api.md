@@ -10,8 +10,8 @@
 ## 一、用户端 API
 
 ### 1.1 用户认证 (`/api/auth`)
-- `POST /api/auth/register` - 用户注册（手机号/邮箱、密码）
-- `POST /api/auth/login` - 用户登录，返回 JWT 
+- `POST /api/auth/register` - 用户注册（用户名、密码）
+- `POST /api/auth/login` - 用户登录（支持用户名或手机号登录），返回 JWT
 - `POST /api/auth/refresh` - 刷新 Token
 
 ### 1.2 首页与公共信息 (`/api/public`)
@@ -34,7 +34,7 @@
 
 ### 1.5 个人中心 (`/api/user`)
 - `GET /api/user/profile` - 获取个人信息
-- `PUT /api/user/profile` - 修改个人资料（头像、昵称、手机号等）
+- `PUT /api/user/profile` - 修改个人资料（用户名、手机号等）
 - `PUT /api/user/password` - 修改登录密码
 - `GET /api/user/stats` - 获取学习时长统计（按日/周/月进行图表可视化数据）
 - `GET /api/user/violations` - 获取违约记录列表
@@ -74,6 +74,7 @@
 ### 2.5 用户管理 (`/api/admin/users`)
 - `GET /api/admin/users` - 获取所有用户信息列表
 - `GET /api/admin/users/{id}` - 查看用户详情（含预约与违约记录）
+- `PUT /api/admin/users/{id}` - 更新用户信息（用户名、密码、角色、状态）
 - `PUT /api/admin/users/{id}/status` - 禁用/启用用户账号
 
 ### 2.6 公告与轮播图管理 (`/api/admin/content`)

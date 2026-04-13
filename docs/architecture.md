@@ -121,9 +121,11 @@ erDiagram
     USER {
         bigint id PK
         string username
-        string nickname
+        string avatar
         string phone
         string email
+        int credit_score
+        datetime last_credit_time
         int role
         int status
     }

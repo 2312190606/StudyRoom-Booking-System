@@ -26,9 +26,11 @@ erDiagram
     USER {
         bigint id PK
         string username
-        string nickname
+        string avatar
         string phone
         string email
+        int credit_score
+        datetime last_credit_time
         int role
         int status
     }
@@ -100,10 +102,11 @@ erDiagram
 | id | bigint | PK, Auto_Inc | 用户主键 |
 | username | varchar(50) | Unique, Not Null | 用户名/登录账号 |
 | password | varchar(255) | Not Null | 加密后的密码 |
-| nickname | varchar(50) | - | 昵称 |
-| avatar | varchar(255) | - | 头像 URL |
+| avatar | varchar(255) | - | 头像 URL（默认为用户名的首字符） |
 | phone | varchar(20) | Unique | 手机号 |
 | email | varchar(100) | Unique | 邮箱 |
+| credit_score | int | Default 100 | 信誉分（初始100，签到+5，违约-10） |
+| last_credit_time | datetime | - | 最后信誉分变动时间 |
 | role | tinyint | Default 2 | 角色 (1: 管理员, 2: 普通用户) |
 | status | tinyint | Default 1 | 状态 (0: 禁用, 1: 正常) |
 | created_at | datetime | Default Now | 注册时间 |
