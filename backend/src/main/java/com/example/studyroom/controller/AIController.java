@@ -5,19 +5,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
 /**
- * AI 客服控制器（接入阿里云百炼 API）
+ * AI 客服控制器（接入 DeepSeek API）
  */
 @RestController
 @RequestMapping("/api/ai")
 public class AIController {
 
-    private static final String API_KEY = "sk-987de2f40e704872b567950739efa3b5";
+    @Value("${DEEPSEEK_API_KEY:}")
+    private String apiKey;
+
     private static final String API_URL = "https://api.deepseek.com/v1/chat/completions";
 
     @Autowired
@@ -61,7 +64,7 @@ public class AIController {
         }
 
         try {
-            String answer = callBailianAPI(question);
+            String answer = callDeepSeekAPI(question);
             return Result.success(answer);
         } catch (Exception e) {
             // API 调用失败时返回友好提示
@@ -70,13 +73,13 @@ public class AIController {
     }
 
     /**
-     * 调用百炼 API
+     * 调用 DeepSeek API
      */
-    private String callBailianAPI(String question) throws Exception {
+    private String callDeepSeekAPI(String question) throws Exception {
         // 构建请求头
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + API_KEY);
+        headers.set("Authorization", "Bearer " + apiKey);
 
         // 构建消息列表
         List<Map<String, String>> messages = new ArrayList<>();

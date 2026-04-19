@@ -16,3 +16,6 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: auto
+
+# DeepSeek API 配置
+DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:}
