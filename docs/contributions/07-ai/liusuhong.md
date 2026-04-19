@@ -58,6 +58,9 @@ const answer = await askAI(content)
 content: answer || '抱歉，我现在无法回答这个问题'
 ```
 
+## PR链接
+- PR #X：https://github.com/2312190606/StudyRoom-Booking-System/compare/feature/lsh-frontend-doc?expand=1
+
 ## 心得体会
 
 通过本次 AI 客服前端实现，我学习了：
