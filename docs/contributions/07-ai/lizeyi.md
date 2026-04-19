@@ -61,7 +61,7 @@ requestBody.put("model", "deepseek-chat");
 ```
 
 ## PR 链接
-- PR #X: https://github.com/xxx/xxx/pull/X
+- PR #X: https://github.com/2312190606/StudyRoom-Booking-System/compare
 
 ## 心得体会
 
