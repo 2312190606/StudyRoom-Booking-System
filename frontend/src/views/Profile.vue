@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import Navbar from '../components/Navbar.vue'
+import AIChat from '../components/AIChat.vue'
 import { showSuccessToast, showToast } from 'vant'
 import { getUserProfile, updateUserProfile, getCreditScore } from '../api/user'
 import { getMyReservations } from '../api/reservations'
@@ -55,6 +56,7 @@ onMounted(() => {
 // UI State
 const showEditModal = ref(false)
 const showPasswordModal = ref(false)
+const showChat = ref(false)
 
 // Edit Form State
 const editForm = ref({
@@ -235,6 +237,16 @@ const studyDays = computed(() => {
               <svg class="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </a>
 
+            <button @click="showChat = true" class="flex items-center justify-between py-5 group cursor-pointer border-b border-transparent hover:border-gray-50 text-left w-full border-none bg-transparent">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 text-purple-500 flex items-center justify-center transition-transform group-hover:scale-110">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                </div>
+                <span class="text-[16px] font-bold text-gray-700 group-hover:text-gray-900">AI 客服问答</span>
+              </div>
+              <svg class="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+
             <a @click="$router.push('/about')" class="flex items-center justify-between py-5 group cursor-pointer border-b border-transparent hover:border-gray-50">
               <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center transition-transform group-hover:scale-110">
@@ -318,4 +330,7 @@ const studyDays = computed(() => {
       </div>
     </div>
   </div>
+
+  <!-- AI Chat -->
+  <AIChat v-model:show="showChat" />
 </template>
