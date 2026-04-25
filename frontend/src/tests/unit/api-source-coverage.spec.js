@@ -5,39 +5,47 @@
 import { describe, test, expect, jest, beforeEach } from '@jest/globals';
 
 // Mock axios before importing API modules
-jest.mock('axios', () => {
-  const mockInstance = {
-    get: jest.fn().mockResolvedValue({ data: { code: 200, data: {} } }),
-    post: jest.fn().mockResolvedValue({ data: { code: 200, data: {} } }),
-    put: jest.fn().mockResolvedValue({ data: { code: 200, data: {} } }),
-    delete: jest.fn().mockResolvedValue({ data: { code: 200, data: {} } }),
-    interceptors: {
-      request: { use: jest.fn(), eject: jest.fn() },
-      response: { use: jest.fn(), eject: jest.fn() }
-    }
-  };
-  return {
-    __esModule: true,
-    default: {
-      create: jest.fn(() => mockInstance)
-    },
+const mockRequestInterceptor = { use: jest.fn(), eject: jest.fn() };
+const mockResponseInterceptor = { use: jest.fn(), eject: jest.fn() };
+
+const mockInstance = {
+  get: jest.fn().mockResolvedValue({ data: { code: 200, data: {} } }),
+  post: jest.fn().mockResolvedValue({ data: { code: 200, data: {} } }),
+  put: jest.fn().mockResolvedValue({ data: { code: 200, data: {} } }),
+  delete: jest.fn().mockResolvedValue({ data: { code: 200, data: {} } }),
+  interceptors: {
+    request: mockRequestInterceptor,
+    response: mockResponseInterceptor
+  }
+};
+
+jest.mock('axios', () => ({
+  __esModule: true,
+  default: {
     create: jest.fn(() => mockInstance)
-  };
-});
+  },
+  create: jest.fn(() => mockInstance)
+}));
 
 // Mock Vant
 jest.mock('vant', () => ({
-  showToast: jest.fn()
+  showToast: jest.fn(),
+  showSuccessToast: jest.fn(),
+  showFailToast: jest.fn()
 }));
 
 // Polyfill import.meta for Vite environment variables
-global.import = {
-  meta: {
-    env: {
-      VITE_API_BASE_URL: '/api'
+Object.defineProperty(global, 'import', {
+  value: {
+    meta: {
+      env: {
+        VITE_API_BASE_URL: '/api'
+      }
     }
-  }
-};
+  },
+  writable: true,
+  configurable: true
+});
 
 describe('API 源文件导出测试', () => {
   beforeEach(() => {
@@ -324,28 +332,104 @@ describe('API 源文件导出测试', () => {
       adminModule = await import('../../api/admin.js');
     });
 
+    // Dashboard 函数
     test('getDashboardStats 函数导出正确', () => {
       expect(typeof adminModule.getDashboardStats).toBe('function');
     });
 
+    test('getDashboardUtilization 函数导出正确', () => {
+      expect(typeof adminModule.getDashboardUtilization).toBe('function');
+    });
+
+    test('getDashboardUsersTrend 函数导出正确', () => {
+      expect(typeof adminModule.getDashboardUsersTrend).toBe('function');
+    });
+
+    // 房间管理函数
     test('getAdminRooms 函数导出正确', () => {
       expect(typeof adminModule.getAdminRooms).toBe('function');
     });
 
+    test('createRoom 函数导出正确', () => {
+      expect(typeof adminModule.createRoom).toBe('function');
+    });
+
+    test('updateRoom 函数导出正确', () => {
+      expect(typeof adminModule.updateRoom).toBe('function');
+    });
+
+    test('updateMaintenanceSeats 函数导出正确', () => {
+      expect(typeof adminModule.updateMaintenanceSeats).toBe('function');
+    });
+
+    test('deleteRoom 函数导出正确', () => {
+      expect(typeof adminModule.deleteRoom).toBe('function');
+    });
+
+    test('batchCreateSeats 函数导出正确', () => {
+      expect(typeof adminModule.batchCreateSeats).toBe('function');
+    });
+
+    test('updateSeat 函数导出正确', () => {
+      expect(typeof adminModule.updateSeat).toBe('function');
+    });
+
+    // 预约管理函数
     test('getAdminReservations 函数导出正确', () => {
       expect(typeof adminModule.getAdminReservations).toBe('function');
     });
 
+    test('adminCancelReservation 函数导出正确', () => {
+      expect(typeof adminModule.adminCancelReservation).toBe('function');
+    });
+
+    // 用户管理函数
     test('getAdminUsers 函数导出正确', () => {
       expect(typeof adminModule.getAdminUsers).toBe('function');
     });
 
+    test('createUser 函数导出正确', () => {
+      expect(typeof adminModule.createUser).toBe('function');
+    });
+
+    test('deleteUser 函数导出正确', () => {
+      expect(typeof adminModule.deleteUser).toBe('function');
+    });
+
+    test('updateUserStatus 函数导出正确', () => {
+      expect(typeof adminModule.updateUserStatus).toBe('function');
+    });
+
+    test('updateUser 函数导出正确', () => {
+      expect(typeof adminModule.updateUser).toBe('function');
+    });
+
+    // 配置管理函数
     test('getConfig 函数导出正确', () => {
       expect(typeof adminModule.getConfig).toBe('function');
     });
 
+    test('updateConfig 函数导出正确', () => {
+      expect(typeof adminModule.updateConfig).toBe('function');
+    });
+
+    test('createAnnouncement 函数导出正确', () => {
+      expect(typeof adminModule.createAnnouncement).toBe('function');
+    });
+
+    // 调用测试
     test('getDashboardStats 函数可被调用', async () => {
       const result = await adminModule.getDashboardStats();
+      expect(result).toBeDefined();
+    });
+
+    test('getDashboardUtilization 函数可被调用', async () => {
+      const result = await adminModule.getDashboardUtilization();
+      expect(result).toBeDefined();
+    });
+
+    test('getDashboardUsersTrend 函数可被调用', async () => {
+      const result = await adminModule.getDashboardUsersTrend();
       expect(result).toBeDefined();
     });
 
@@ -354,8 +438,43 @@ describe('API 源文件导出测试', () => {
       expect(result).toBeDefined();
     });
 
+    test('createRoom 函数可被调用', async () => {
+      const result = await adminModule.createRoom({ name: 'Test Room' });
+      expect(result).toBeDefined();
+    });
+
+    test('updateRoom 函数可被调用', async () => {
+      const result = await adminModule.updateRoom(1, { name: 'Updated Room' });
+      expect(result).toBeDefined();
+    });
+
+    test('updateMaintenanceSeats 函数可被调用', async () => {
+      const result = await adminModule.updateMaintenanceSeats(1, [1, 2, 3]);
+      expect(result).toBeDefined();
+    });
+
+    test('deleteRoom 函数可被调用', async () => {
+      const result = await adminModule.deleteRoom(1);
+      expect(result).toBeDefined();
+    });
+
+    test('batchCreateSeats 函数可被调用', async () => {
+      const result = await adminModule.batchCreateSeats(1, { seats: [] });
+      expect(result).toBeDefined();
+    });
+
+    test('updateSeat 函数可被调用', async () => {
+      const result = await adminModule.updateSeat(1, { status: 'available' });
+      expect(result).toBeDefined();
+    });
+
     test('getAdminReservations 函数可被调用', async () => {
       const result = await adminModule.getAdminReservations({ page: 1 });
+      expect(result).toBeDefined();
+    });
+
+    test('adminCancelReservation 函数可被调用', async () => {
+      const result = await adminModule.adminCancelReservation(1);
       expect(result).toBeDefined();
     });
 
@@ -364,8 +483,38 @@ describe('API 源文件导出测试', () => {
       expect(result).toBeDefined();
     });
 
+    test('createUser 函数可被调用', async () => {
+      const result = await adminModule.createUser({ username: 'test', password: '123456' });
+      expect(result).toBeDefined();
+    });
+
+    test('deleteUser 函数可被调用', async () => {
+      const result = await adminModule.deleteUser(1);
+      expect(result).toBeDefined();
+    });
+
+    test('updateUserStatus 函数可被调用', async () => {
+      const result = await adminModule.updateUserStatus(1, { status: 'active' });
+      expect(result).toBeDefined();
+    });
+
+    test('updateUser 函数可被调用', async () => {
+      const result = await adminModule.updateUser(1, { username: 'updated' });
+      expect(result).toBeDefined();
+    });
+
     test('getConfig 函数可被调用', async () => {
       const result = await adminModule.getConfig();
+      expect(result).toBeDefined();
+    });
+
+    test('updateConfig 函数可被调用', async () => {
+      const result = await adminModule.updateConfig({ key: 'value' });
+      expect(result).toBeDefined();
+    });
+
+    test('createAnnouncement 函数可被调用', async () => {
+      const result = await adminModule.createAnnouncement({ title: 'Test', content: 'Content' });
       expect(result).toBeDefined();
     });
   });

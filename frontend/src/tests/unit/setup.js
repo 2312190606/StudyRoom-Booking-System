@@ -34,20 +34,24 @@ jest.mock('vant', () => ({
 }));
 
 // Mock axios
-jest.mock('axios', () => {
-  return jest.fn(() => ({
-    create: jest.fn(() => ({
-      get: jest.fn(),
-      post: jest.fn(),
-      put: jest.fn(),
-      delete: jest.fn(),
-      interceptors: {
-        request: { use: jest.fn() },
-        response: { use: jest.fn() }
-      }
-    }))
-  }));
-});
+const mockAxiosInstance = {
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+  interceptors: {
+    request: { use: jest.fn(), eject: jest.fn() },
+    response: { use: jest.fn(), eject: jest.fn() }
+  }
+};
+
+jest.mock('axios', () => ({
+  __esModule: true,
+  default: {
+    create: jest.fn(() => mockAxiosInstance)
+  },
+  create: jest.fn(() => mockAxiosInstance)
+}));
 
 // Polyfill import.meta for Vite environment variables
 if (typeof global.import === 'undefined') {
