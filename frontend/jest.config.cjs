@@ -7,7 +7,8 @@ module.exports = {
   moduleFileExtensions: ['vue', 'js', 'json'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '^vant$': '<rootDir>/node_modules/vant/lib/vant.cjs.js'
   },
   testMatch: [
     '<rootDir>/src/tests/unit/**/*.spec.js',
@@ -35,5 +36,11 @@ module.exports = {
     '!**/node_modules/**'
   ],
   coverageDirectory: 'coverage',
-  coverageReporters: ['html', 'text', 'lcov']
+  coverageReporters: ['html', 'text', 'lcov'],
+  setupFilesAfterEnv: ['<rootDir>/src/tests/unit/setup.js'],
+  globals: {
+    'import.meta.env': {
+      VITE_API_BASE_URL: '/api'
+    }
+  }
 }
