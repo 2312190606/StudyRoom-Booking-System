@@ -128,6 +128,26 @@ describe('API 源文件导出测试', () => {
       const result = await userModule.getUserStats();
       expect(result).toBeDefined();
     });
+
+    test('updatePassword 函数可被调用', async () => {
+      const result = await userModule.updatePassword({ oldPassword: '123', newPassword: '456' });
+      expect(result).toBeDefined();
+    });
+
+    test('getFavorites 函数可被调用', async () => {
+      const result = await userModule.getFavorites();
+      expect(result).toBeDefined();
+    });
+
+    test('quickReserveFavorite 函数可被调用', async () => {
+      const result = await userModule.quickReserveFavorite(1);
+      expect(result).toBeDefined();
+    });
+
+    test('getCreditScore 函数可被调用', async () => {
+      const result = await userModule.getCreditScore();
+      expect(result).toBeDefined();
+    });
   });
 
   describe('reservations.js', () => {
@@ -179,6 +199,26 @@ describe('API 源文件导出测试', () => {
       const result = await reservationsModule.cancelReservation(1);
       expect(result).toBeDefined();
     });
+
+    test('extendReservation 函数可被调用', async () => {
+      const result = await reservationsModule.extendReservation(1);
+      expect(result).toBeDefined();
+    });
+
+    test('checkIn 函数可被调用', async () => {
+      const result = await reservationsModule.checkIn(1, { latitude: 30.0, longitude: 120.0 });
+      expect(result).toBeDefined();
+    });
+
+    test('endStudy 函数可被调用', async () => {
+      const result = await reservationsModule.endStudy(1);
+      expect(result).toBeDefined();
+    });
+
+    test('deleteReservation 函数可被调用', async () => {
+      const result = await reservationsModule.deleteReservation(1);
+      expect(result).toBeDefined();
+    });
   });
 
   describe('rooms.js', () => {
@@ -207,6 +247,11 @@ describe('API 源文件导出测试', () => {
 
     test('getRoomDetail 函数可被调用', async () => {
       const result = await roomsModule.getRoomDetail(1);
+      expect(result).toBeDefined();
+    });
+
+    test('getRoomSeats 函数可被调用', async () => {
+      const result = await roomsModule.getRoomSeats(1);
       expect(result).toBeDefined();
     });
   });
@@ -253,6 +298,74 @@ describe('API 源文件导出测试', () => {
 
     test('getAnnouncements 函数可被调用', async () => {
       const result = await announcementsModule.getAnnouncements({ page: 1 });
+      expect(result).toBeDefined();
+    });
+
+    test('createAnnouncement 函数可被调用', async () => {
+      const result = await announcementsModule.createAnnouncement({ title: 'Test', content: 'Content' });
+      expect(result).toBeDefined();
+    });
+
+    test('updateAnnouncement 函数可被调用', async () => {
+      const result = await announcementsModule.updateAnnouncement(1, { title: 'Updated' });
+      expect(result).toBeDefined();
+    });
+
+    test('deleteAnnouncement 函数可被调用', async () => {
+      const result = await announcementsModule.deleteAnnouncement(1);
+      expect(result).toBeDefined();
+    });
+  });
+
+  describe('admin.js', () => {
+    let adminModule;
+
+    beforeAll(async () => {
+      adminModule = await import('../../api/admin.js');
+    });
+
+    test('getDashboardStats 函数导出正确', () => {
+      expect(typeof adminModule.getDashboardStats).toBe('function');
+    });
+
+    test('getAdminRooms 函数导出正确', () => {
+      expect(typeof adminModule.getAdminRooms).toBe('function');
+    });
+
+    test('getAdminReservations 函数导出正确', () => {
+      expect(typeof adminModule.getAdminReservations).toBe('function');
+    });
+
+    test('getAdminUsers 函数导出正确', () => {
+      expect(typeof adminModule.getAdminUsers).toBe('function');
+    });
+
+    test('getConfig 函数导出正确', () => {
+      expect(typeof adminModule.getConfig).toBe('function');
+    });
+
+    test('getDashboardStats 函数可被调用', async () => {
+      const result = await adminModule.getDashboardStats();
+      expect(result).toBeDefined();
+    });
+
+    test('getAdminRooms 函数可被调用', async () => {
+      const result = await adminModule.getAdminRooms();
+      expect(result).toBeDefined();
+    });
+
+    test('getAdminReservations 函数可被调用', async () => {
+      const result = await adminModule.getAdminReservations({ page: 1 });
+      expect(result).toBeDefined();
+    });
+
+    test('getAdminUsers 函数可被调用', async () => {
+      const result = await adminModule.getAdminUsers({ page: 1 });
+      expect(result).toBeDefined();
+    });
+
+    test('getConfig 函数可被调用', async () => {
+      const result = await adminModule.getConfig();
       expect(result).toBeDefined();
     });
   });
