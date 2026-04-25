@@ -2,9 +2,9 @@ name: Tests and Coverage
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, feature/lsh-frontend-doc ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, feature/lsh-frontend-doc ]
 
 jobs:
   test:
@@ -18,14 +18,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run tests with coverage
         run: npm run test:coverage
+        working-directory: ./frontend
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
@@ -35,15 +36,18 @@ jobs:
           retention-days: 7
 
       - name: Generate LCOV report
-        run: npx jest --coverage --coverageReporters=lcov
+        run: npm run test:coverage
+        working-directory: ./frontend
 
       - name: Publish coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
-          files: ./coverage/lcov.info
+          files: ./frontend/coverage/lcov.info
           flags: unittests
           name: codecov-frontend
           fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   cypress:
     name: Cypress E2E Tests
@@ -57,19 +61,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
+        working-directory: ./frontend
 
       - name: Install Chrome dependencies
-        run: |
-          npx cypress install --driver chrome-linux chrome
+        run: npx cypress install --driver chrome-linux chrome
+        working-directory: ./frontend
 
       - name: Start dev server
         run: npm run dev &
         shell: bash
+        working-directory: ./frontend
         env:
           CI: true
 
@@ -79,6 +85,7 @@ jobs:
       - name: Run Cypress tests
         run: npm run cypress:run
         continue-on-error: true
+        working-directory: ./frontend
 
       - name: Upload Cypress screenshots
         if: failure()
