@@ -1,0 +1,91 @@
+name: Tests and Coverage
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    name: Jest Tests and Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: frontend/coverage/
+          retention-days: 7
+
+      - name: Generate LCOV report
+        run: npx jest --coverage --coverageReporters=lcov
+
+      - name: Publish coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-frontend
+          fail_ci_if_error: false
+
+  cypress:
+    name: Cypress E2E Tests
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chrome dependencies
+        run: |
+          npx cypress install --driver chrome-linux chrome
+
+      - name: Start dev server
+        run: npm run dev &
+        shell: bash
+        env:
+          CI: true
+
+      - name: Wait for dev server
+        run: npx wait-on http://localhost:5173 --timeout 60000
+
+      - name: Run Cypress tests
+        run: npm run cypress:run
+        continue-on-error: true
+
+      - name: Upload Cypress screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: |
+            frontend/cypress/screenshots/
+            frontend/cypress/videos/
+          retention-days: 7
