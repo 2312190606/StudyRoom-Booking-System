@@ -6,6 +6,7 @@ import ProfileView from '../views/Profile.vue'
 import ReservationsView from '../views/Reservations.vue'
 import GuideView from '../views/Guide.vue'
 import AboutView from '../views/About.vue'
+import UserLayout from '../layouts/UserLayout.vue'
 import AdminLayout from '../layouts/AdminLayout.vue'
 import AdminRoomsView from '../views/admin/Rooms.vue'
 import AdminBookingsView from '../views/admin/Bookings.vue'
@@ -18,16 +19,41 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      component: UserLayout,
       redirect: () => {
         const token = localStorage.getItem('token')
         return token ? '/home' : '/login'
-      }
-    },
-    {
-      path: '/home',
-      name: 'home',
-      component: HomeView,
-      meta: { requiresAuth: true }
+      },
+      children: [
+        {
+          path: 'home',
+          name: 'home',
+          component: HomeView,
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'profile',
+          name: 'profile',
+          component: ProfileView,
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'reservations',
+          name: 'reservations',
+          component: ReservationsView,
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'guide',
+          name: 'guide',
+          component: GuideView
+        },
+        {
+          path: 'about',
+          name: 'about',
+          component: AboutView
+        }
+      ]
     },
     {
       path: '/login',
@@ -38,28 +64,6 @@ const router = createRouter({
       path: '/register',
       name: 'register',
       component: RegisterView
-    },
-    {
-      path: '/profile',
-      name: 'profile',
-      component: ProfileView,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/reservations',
-      name: 'reservations',
-      component: ReservationsView,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/guide',
-      name: 'guide',
-      component: GuideView
-    },
-    {
-      path: '/about',
-      name: 'about',
-      component: AboutView
     },
     {
       path: '/admin',

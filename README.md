@@ -20,3 +20,37 @@
 ## Figma
 
  - 链接：https://iso-ruby-33600287.figma.site/
+
+## 测试
+
+### 单元测试 (Jest)
+
+```bash
+cd frontend
+npm install
+npm test
+```
+
+### E2E 测试 (Cypress)
+
+```bash
+# 终端1：启动开发服务器
+npm run dev
+
+# 终端2：运行 E2E 测试
+npm run cypress:run
+```
+
+### 覆盖率报告
+
+运行 `npm run test:coverage` 后，在浏览器中打开 `frontend/coverage/index.html` 查看详细覆盖率报告。
+
+| 指标 | 数值 |
+|------|------|
+| 测试套件 | 3 passed |
+| 测试用例 | 77 passed |
+| 覆盖文件 | API、组件、布局、页面等核心源码 |
+
+![Jest Tests](https://img.shields.io/badge/jest-77%20tests%20passed-brightgreen)
+[![codecov](https://codecov.io/gh/2312190606/StudyRoom-Booking-System/branch/main/graph/badge.svg)](https://codecov.io/gh/2312190606/StudyRoom-Booking-System)
+[![Test Coverage](https://github.com/2312190606/StudyRoom-Booking-System/actions/workflows/test.yml/badge.svg)](https://github.com/2312190606/StudyRoom-Booking-System/actions)

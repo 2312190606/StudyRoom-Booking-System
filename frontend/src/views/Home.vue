@@ -2,7 +2,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-import Navbar from '../components/Navbar.vue'
 import { getRooms, getRoomSeats } from '../api/rooms'
 import { createReservation } from '../api/reservations'
 
@@ -332,11 +331,7 @@ const handleQuickBook = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col items-center">
-    <!-- Navbar -->
-    <Navbar />
-
-    <main class="w-full px-8 md:px-12 lg:px-20 py-8 pb-20 flex flex-col gap-8">
+  <div class="w-full flex flex-col gap-8">
       <!-- Hero Banner -->
       <div class="bg-[#3B34D1] rounded-[2rem] p-10 text-white relative overflow-hidden shadow-lg h-[22rem] flex flex-col justify-center">
         <!-- Background Pattern (Calendar icon outline) -->
@@ -447,8 +442,7 @@ const handleQuickBook = async () => {
           </button>
         </div>
       </div>
-    </main>
-    
+
     <!-- All Rooms Modal -->
     <div v-if="showAllRooms" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-12">
       <!-- Backdrop -->
