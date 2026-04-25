@@ -47,10 +47,11 @@ npm run cypress:run
 
 | 指标 | 数值 |
 |------|------|
-| 测试套件 | 3 passed |
-| 测试用例 | 77 passed |
+| 测试套件 | 5 passed |
+| 测试用例 | 156 passed |
+| API 覆盖率 | 24% |
 | 覆盖文件 | API、组件、布局、页面等核心源码 |
 
-![Jest Tests](https://img.shields.io/badge/jest-77%20tests%20passed-brightgreen)
+![Jest Tests](https://img.shields.io/badge/jest-156%20tests%20passed-brightgreen)
 [![codecov](https://codecov.io/gh/2312190606/StudyRoom-Booking-System/branch/main/graph/badge.svg)](https://codecov.io/gh/2312190606/StudyRoom-Booking-System)
 [![Test Coverage](https://github.com/2312190606/StudyRoom-Booking-System/actions/workflows/test.yml/badge.svg)](https://github.com/2312190606/StudyRoom-Booking-System/actions)
