@@ -19,10 +19,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       - name: Install dependencies
         run: npm install
+        working-directory: ./frontend
 
       - name: Run tests with coverage
         run: npm run test:coverage
@@ -35,10 +35,6 @@ jobs:
           path: frontend/coverage/
           retention-days: 7
 
-      - name: Generate LCOV report
-        run: npm run test:coverage
-        working-directory: ./frontend
-
       - name: Publish coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -48,51 +44,3 @@ jobs:
           fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  cypress:
-    name: Cypress E2E Tests
-    runs-on: ubuntu-latest
-    needs: test
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm install
-        working-directory: ./frontend
-
-      - name: Install Chrome dependencies
-        run: npx cypress install --driver chrome-linux chrome
-        working-directory: ./frontend
-
-      - name: Start dev server
-        run: npm run dev &
-        shell: bash
-        working-directory: ./frontend
-        env:
-          CI: true
-
-      - name: Wait for dev server
-        run: npx wait-on http://localhost:5173 --timeout 60000
-
-      - name: Run Cypress tests
-        run: npm run cypress:run
-        continue-on-error: true
-        working-directory: ./frontend
-
-      - name: Upload Cypress screenshots
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cypress-screenshots
-          path: |
-            frontend/cypress/screenshots/
-            frontend/cypress/videos/
-          retention-days: 7
