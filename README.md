@@ -51,7 +51,7 @@ npm run cypress:run
 
 | 指标 | 数值 |
 |------|------|
-| 测试套件 | 5 passed |
-| 测试用例 | 178 passed |
-| API 覆盖率 | 50% |
+| 测试套件 | 6 passed |
+| 测试用例 | 221 passed |
+| API 覆盖率 | 83% |
 | 覆盖文件 | API 核心源码 |
