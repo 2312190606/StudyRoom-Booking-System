@@ -1,6 +1,5 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import Navbar from '../components/Navbar.vue'
 import { showLoadingToast, showSuccessToast, showFailToast } from 'vant'
 import { getMyReservations, cancelReservation, extendReservation, checkIn, endStudy, deleteReservation } from '../api/reservations'
 
@@ -154,11 +153,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f7f8fc] flex flex-col items-center pb-12">
-    <!-- Navbar -->
-    <Navbar />
-
-    <main class="w-full px-8 md:px-12 lg:px-20 py-8 flex flex-col gap-8 max-w-[1200px]">
+  <div class="w-full flex flex-col gap-8 max-w-[1200px]">
 
       <!-- Page Header -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-2">
@@ -354,6 +349,5 @@ onMounted(() => {
         </div>
       </div>
 
-    </main>
   </div>
 </template>

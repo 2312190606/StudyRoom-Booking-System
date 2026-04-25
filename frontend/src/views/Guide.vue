@@ -1,6 +1,5 @@
 <script setup>
 import { ref } from 'vue'
-import Navbar from '../components/Navbar.vue'
 
 const activeNames = ref(['1'])
 
@@ -40,10 +39,7 @@ const rules = [
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f7f8fc] flex flex-col items-center pb-12">
-    <Navbar />
-
-    <main class="w-full px-8 md:px-12 lg:px-20 py-8 flex flex-col gap-6 max-w-[1200px]">
+  <div class="w-full flex flex-col gap-6 max-w-[1200px]">
       <!-- Header Section -->
       <div class="w-full bg-white rounded-[2rem] p-8 md:p-10 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col relative overflow-hidden">
         <div class="absolute -top-32 -right-32 w-80 h-80 bg-[#f0f4ff] rounded-full blur-[60px] opacity-70"></div>
@@ -101,7 +97,6 @@ const rules = [
           </div>
         </div>
       </div>
-    </main>
   </div>
 </template>
 

@@ -1,6 +1,5 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import Navbar from '../components/Navbar.vue'
 import AIChat from '../components/AIChat.vue'
 import { showSuccessToast, showToast } from 'vant'
 import { getUserProfile, updateUserProfile, getCreditScore } from '../api/user'
@@ -128,11 +127,7 @@ const studyDays = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f7f8fc] flex flex-col items-center pb-12">
-    <!-- Navbar -->
-    <Navbar />
-
-    <main class="w-full px-8 md:px-12 lg:px-20 py-8 flex flex-col gap-6 max-w-[1200px]">
+  <div class="w-full flex flex-col gap-6">
       <!-- Top Card -->
       <div class="w-full bg-white rounded-[2rem] p-8 md:p-10 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col md:flex-row items-center md:items-start gap-8 relative overflow-hidden">
         <!-- Background Decoration -->
@@ -260,10 +255,7 @@ const studyDays = computed(() => {
           </div>
         </div>
       </div>
-    </main>
-
-
-  </div>
+    </div>
 
   <!-- Edit Profile Modal -->
   <div v-if="showEditModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
