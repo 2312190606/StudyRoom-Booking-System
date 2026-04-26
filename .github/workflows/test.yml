@@ -1,0 +1,46 @@
+name: Tests and Coverage
+
+on:
+  push:
+    branches: [ main, master, feature/lsh-frontend-doc ]
+  pull_request:
+    branches: [ main, master, feature/lsh-frontend-doc ]
+
+jobs:
+  test:
+    name: Jest Tests and Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./frontend
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+        working-directory: ./frontend
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: frontend/coverage/
+          retention-days: 7
+
+      - name: Publish coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./frontend/coverage/lcov.info
+          flags: unittests
+          name: codecov-frontend
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

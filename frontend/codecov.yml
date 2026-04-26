@@ -1,0 +1,25 @@
+coverage:
+  precision: 2
+  round: down
+  range: "0...100"
+
+  status:
+    project:
+      default:
+        target: 5%
+        threshold: 1%
+        only_pulls: false
+    api:
+      paths:
+        - src/api/
+      target: 30%
+      threshold: 5%
+      only_pulls: false
+
+parsers:
+  javascript:
+    enable: 100
+
+comment:
+  layout: "header, diff, changes, files"
+  require_changes: false

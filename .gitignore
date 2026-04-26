@@ -33,3 +33,9 @@ redis-data/
 
 # Logs
 build.log
+
+# Coverage
+**/coverage/
+
+# PDFs
+*.pdf

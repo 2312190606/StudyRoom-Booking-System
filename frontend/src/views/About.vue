@@ -1,12 +1,8 @@
 <script setup>
-import Navbar from '../components/Navbar.vue'
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f7f8fc] flex flex-col items-center pb-12">
-    <Navbar />
-
-    <main class="w-full px-8 md:px-12 lg:px-20 py-8 flex flex-col gap-6 max-w-[1200px] items-center">
+  <div class="w-full flex flex-col gap-6 max-w-[1200px] items-center">
       <!-- App Identity Section -->
       <div class="w-full bg-white rounded-[2.5rem] p-12 md:p-20 shadow-[0_10px_60px_rgba(0,0,0,0.03)] flex flex-col items-center relative overflow-hidden text-center">
         <!-- Background Decorations -->
@@ -31,7 +27,6 @@ import Navbar from '../components/Navbar.vue'
       <button @click="$router.back()" class="mt-8 text-[15px] font-black text-indigo-500 bg-indigo-50 px-10 py-4 rounded-full hover:bg-indigo-100 transition border-none cursor-pointer">
         返回个人中心
       </button>
-    </main>
   </div>
 </template>
 
