@@ -86,7 +86,7 @@
   - "解决 JaCoCo 覆盖率数据文件丢失问题"
 
 ## PR 链接
-- 本地测试通过，暂未提交 PR
+- 本地测试通过，PR：https://github.com/2312190606/StudyRoom-Booking-System/compare/feature/lzy-backend-docs?expand=1
 
 ## 心得体会
 
