@@ -62,9 +62,6 @@ public class FavoriteControllerTest {
 
     @Test
     void addFavorite_Success() throws Exception {
-        Map<String, Long> requestBody = new HashMap<>();
-        requestBody.put("seatId", 10L);
-
         mockMvc.perform(post("/api/favorites")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"seatId\":10}"))
