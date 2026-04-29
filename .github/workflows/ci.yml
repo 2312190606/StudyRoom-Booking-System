@@ -24,14 +24,16 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean compile -DskipTests
+        working-directory: ./backend
 
       - name: Run Maven tests
         run: mvn test
+        working-directory: ./backend
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: target/site/jacoco/jacoco.xml
+          files: backend/target/site/jacoco/jacoco.xml
           flags: backend
           name: codecov-backend
           fail_ci_if_error: false
@@ -52,7 +54,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
         working-directory: ./frontend
 
       - name: Run ESLint
