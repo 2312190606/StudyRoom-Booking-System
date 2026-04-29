@@ -1,8 +1,9 @@
 # 自习室座位预约系统
 
-[![codecov](https://codecov.io/gh/2312190606/StudyRoom-Booking-System/branch/main/graph/badge.svg)](https://codecov.io/gh/2312190606/StudyRoom-Booking-System)
-[![Test Coverage](https://github.com/2312190606/StudyRoom-Booking-System/actions/workflows/test.yml/badge.svg)](https://github.com/2312190606/StudyRoom-Booking-System/actions)
-![Jest Tests](https://img.shields.io/badge/jest-178%20tests%20passed-brightgreen)
+[![CI](https://github.com/2312190606/StudyRoom-Booking-System/actions/workflows/ci.yml/badge.svg)](https://github.com/2312190606/StudyRoom-Booking-System/actions)
+[![codecov](https://codecov.io/gh/2312190606/StudyRoom-Booking-System/branch/main/graph/badge.svg?flag=frontend)](https://codecov.io/gh/2312190606/StudyRoom-Booking-System)
+[![Backend Coverage](https://codecov.io/gh/2312190606/StudyRoom-Booking-System/branch/main/graph/badge.svg?flag=backend)](https://codecov.io/gh/2312190606/StudyRoom-Booking-System)
+![Jest Tests](https://img.shields.io/badge/jest-221%20tests%20passed-brightgreen)
 
 ## 团队成员
 

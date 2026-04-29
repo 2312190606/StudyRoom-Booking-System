@@ -143,7 +143,9 @@ const initRooms = async () => {
     if (room.maintenanceSeats) {
       try {
         maintenanceSeats = JSON.parse(room.maintenanceSeats)
-      } catch (e) {}
+      } catch (e) {
+        // ignore parse error
+      }
     }
     await loadSeats(room.id, maintenanceSeats)
   }
@@ -167,7 +169,9 @@ const generateSeats = () => {
     if (currentRoom.value.maintenanceSeats) {
       try {
         maintenanceSeats = JSON.parse(currentRoom.value.maintenanceSeats)
-      } catch (e) {}
+      } catch (e) {
+        // ignore parse error
+      }
     }
     const maintenanceSet = new Set(maintenanceSeats)
 
@@ -205,7 +209,9 @@ const openRoomLayout = async (roomId, forceMode) => {
   if (currentRoom.value && currentRoom.value.maintenanceSeats) {
     try {
       maintenanceSeats = JSON.parse(currentRoom.value.maintenanceSeats)
-    } catch (e) {}
+    } catch (e) {
+      // ignore parse error
+    }
   }
   // 每次都强制重新加载座位数据，确保显示最新状态
   await loadSeats(roomId, maintenanceSeats)
