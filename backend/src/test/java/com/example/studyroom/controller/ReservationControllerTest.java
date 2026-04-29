@@ -1,6 +1,7 @@
 package com.example.studyroom.controller;
 
 import com.example.studyroom.common.BaseException;
+import com.example.studyroom.security.JwtAuthenticationFilter;
 import com.example.studyroom.service.ReservationService;
 import com.example.studyroom.utils.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,9 @@ public class ReservationControllerTest {
 
     @MockBean
     private JwtUtils jwtUtils;
+
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @BeforeEach
     void setUp() {

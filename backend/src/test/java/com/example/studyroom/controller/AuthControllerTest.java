@@ -1,6 +1,7 @@
 package com.example.studyroom.controller;
 
 import com.example.studyroom.common.BaseException;
+import com.example.studyroom.security.JwtAuthenticationFilter;
 import com.example.studyroom.service.AuthService;
 import com.example.studyroom.utils.JwtUtils;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,9 @@ public class AuthControllerTest {
 
     @MockBean
     private JwtUtils jwtUtils;
+
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Test
     void register_Success() throws Exception {

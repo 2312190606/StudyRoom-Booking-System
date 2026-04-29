@@ -1,6 +1,7 @@
 package com.example.studyroom.controller;
 
 import com.example.studyroom.model.entity.Favorite;
+import com.example.studyroom.security.JwtAuthenticationFilter;
 import com.example.studyroom.service.FavoriteService;
 import com.example.studyroom.utils.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,8 +17,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -36,6 +35,9 @@ public class FavoriteControllerTest {
 
     @MockBean
     private JwtUtils jwtUtils;
+
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @BeforeEach
     void setUp() {

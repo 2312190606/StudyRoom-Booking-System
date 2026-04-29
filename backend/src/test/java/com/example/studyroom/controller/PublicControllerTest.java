@@ -2,6 +2,7 @@ package com.example.studyroom.controller;
 
 import com.example.studyroom.model.entity.Announcement;
 import com.example.studyroom.model.entity.Carousel;
+import com.example.studyroom.security.JwtAuthenticationFilter;
 import com.example.studyroom.service.PublicService;
 import com.example.studyroom.utils.JwtUtils;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,9 @@ public class PublicControllerTest {
 
     @MockBean
     private JwtUtils jwtUtils;
+
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Test
     void getCarousels_Success() throws Exception {
