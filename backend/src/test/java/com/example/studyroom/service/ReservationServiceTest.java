@@ -9,6 +9,7 @@ import com.example.studyroom.mapper.StudyRoomMapper;
 import com.example.studyroom.model.entity.Reservation;
 import com.example.studyroom.model.entity.Seat;
 import com.example.studyroom.model.entity.StudyRoom;
+import com.example.studyroom.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
