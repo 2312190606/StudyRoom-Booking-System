@@ -14,7 +14,7 @@
 - [x] 覆盖率 > 60%
 
 ### 3. 可选项
-- [ ] Dependabot
+- [x] Dependabot
 - [ ] CodeRabbit AI
 - [ ] act
 
