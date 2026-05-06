@@ -1,5 +1,6 @@
 package com.example.studyroom.controller;
 
+import com.example.studyroom.common.BaseException;
 import com.example.studyroom.common.Result;
 import com.example.studyroom.model.dto.LoginDTO;
 import com.example.studyroom.model.dto.RegisterDTO;
@@ -41,6 +42,9 @@ public class AuthController {
      */
     @PostMapping("/refresh")
     public Result<String> refreshToken(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new BaseException("无效的认证头");
+        }
         String token = authHeader.replace("Bearer ", "");
         return Result.success(authService.refreshToken(token));
     }
