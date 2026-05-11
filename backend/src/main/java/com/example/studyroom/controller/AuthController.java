@@ -88,6 +88,9 @@ public class AuthController {
      */
     @PostMapping("/refresh")
     public Result<String> refreshToken(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new BaseException("无效的认证头");
+        }
         String token = authHeader.replace("Bearer ", "");
         return Result.success(authService.refreshToken(token));
     }

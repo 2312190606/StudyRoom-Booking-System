@@ -17,7 +17,7 @@ import java.util.Map;
 @Component
 public class JwtUtils {
 
-    @Value("${studyroom.jwt.secret:studyroom_secret_key_12345678901234567890}")
+    @Value("${studyroom.jwt.secret}")
     private String secret;
 
     @Value("${studyroom.jwt.expiration:86400000}") // 默认 24 小时
