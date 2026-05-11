@@ -338,12 +338,22 @@ public class AdminService {
         reservationMapper.updateById(reservation);
     }
 
+    @Autowired
+    private LoginAttemptService loginAttemptService;
+
     /**
      * 获取所有用户
      */
     public List<User> getAllUsers() {
         List<User> users = userMapper.selectList(null);
-        users.forEach(u -> u.setPassword(null));
+        users.forEach(u -> {
+            u.setPassword(null);
+            // 如果用户原本状态正常，则检查其是否因为连续登录失败被临时锁定
+            // 若被锁定，则在列表展示中将其状态置为 0 (禁用)，方便管理员查看
+            if (u.getStatus() == 1 && loginAttemptService.isLocked(null, u.getUsername())) {
+                u.setStatus(0);
+            }
+        });
         return users;
     }
 
@@ -370,6 +380,12 @@ public class AdminService {
      * 更新用户状态
      */
     public void updateUserStatus(Long id, Integer status) {
+        User targetUser = userMapper.selectById(id);
+        // 如果目标用户是管理员，且试图将其设置为禁用(0)，则拦截
+        if (targetUser != null && targetUser.getRole() != null && targetUser.getRole() == 1 && status == 0) {
+            throw new com.example.studyroom.common.BaseException("安全限制：不能禁用管理员账号");
+        }
+
         User user = new User();
         user.setId(id);
         user.setStatus(status);
@@ -380,6 +396,12 @@ public class AdminService {
      * 更新用户信息（用户名、密码、角色）
      */
     public void updateUser(Long id, String username, String password, Integer role, Integer status) {
+        User targetUser = userMapper.selectById(id);
+        // 如果目标用户是管理员，且试图通过更新详情将其设置为禁用(0)，则拦截
+        if (targetUser != null && targetUser.getRole() != null && targetUser.getRole() == 1 && status != null && status == 0) {
+            throw new com.example.studyroom.common.BaseException("安全限制：不能禁用管理员账号");
+        }
+
         User user = new User();
         user.setId(id);
         if (username != null && !username.isEmpty()) {

@@ -18,7 +18,7 @@ import java.util.*;
 @RequestMapping("/api/ai")
 public class AIController {
 
-    @Value("${DEEPSEEK_API_KEY:}")
+    @Value("${ai.deepseek.api-key:}")
     private String apiKey;
 
     private static final String API_URL = "https://api.deepseek.com/v1/chat/completions";
@@ -59,17 +59,54 @@ public class AIController {
     public Result<String> chat(@RequestBody Map<String, String> request) {
         String question = request.get("question");
 
+        // 1. 基础校验
         if (question == null || question.trim().isEmpty()) {
             return Result.success("请输入您的问题");
         }
 
+        // 2. 长度限制 (防止超长文本攻击)
+        if (question.length() > 500) {
+            return Result.error("输入内容过长，请精简您的问题");
+        }
+
+        // 3. 输入净化 (去除 HTML 标签，防止 XSS 注入)
+        String sanitizedQuestion = question.replaceAll("<[^>]*>", "").trim();
+
+        // 4. 注入检测 (Prompt Injection Detection)
+        if (isPotentialInjection(sanitizedQuestion)) {
+            log.warn("检测到潜在的 AI 注入攻击: {}", sanitizedQuestion);
+            return Result.error("检测到非法指令，请正常提问");
+        }
+
         try {
-            String answer = callDeepSeekAPI(question);
+            String answer = callDeepSeekAPI(sanitizedQuestion);
             return Result.success(answer);
         } catch (Exception e) {
-            // API 调用失败时返回友好提示
+            log.error("AI 接口调用异常: {}", e.getMessage());
             return Result.success("抱歉，AI 服务暂时无法响应，请稍后再试或联系管理员。");
         }
+    }
+
+    /**
+     * 简单的注入检测逻辑
+     */
+    private boolean isPotentialInjection(String input) {
+        String lowerInput = input.toLowerCase();
+        // 常见的注入指令黑名单
+        String[] keywords = {
+            "ignore previous", "ignore above", "system command", 
+            "developer mode", "jailbreak", "you are now",
+            "forget everything", "override", "bypass"
+        };
+        
+        for (String keyword : keywords) {
+            if (lowerInput.contains(keyword)) {
+                return true;
+            }
+        }
+        
+        // 检查是否包含试图模拟系统角色的格式，如 "System:" 或 "Admin:"
+        return lowerInput.contains("system:") || lowerInput.contains("user:") || lowerInput.contains("assistant:");
     }
 
     /**

@@ -1,3 +1,4 @@
+name: study-room
 services:
   # MySQL 数据库
   mysql:
@@ -40,6 +41,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    volumes:
+      - ./backend/src/main/resources/application.yml:/app/config/application.yml
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/study_room_db?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root

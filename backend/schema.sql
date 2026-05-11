@@ -132,4 +132,20 @@ CREATE TABLE IF NOT EXISTS `study_time_stats` (
   KEY `idx_user_date` (`user_id`,`stat_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学习时长统计表';
 
+-- ----------------------------
+-- Table structure for login_attempts
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `login_attempts` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '记录 ID',
+  `account` varchar(50) DEFAULT NULL COMMENT '账号',
+  `ip` varchar(50) DEFAULT NULL COMMENT 'IP 地址',
+  `fail_count` int DEFAULT '0' COMMENT '失败次数',
+  `lock_until` datetime DEFAULT NULL COMMENT '锁定截止时间',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_account` (`account`),
+  KEY `idx_ip` (`ip`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='登录失败记录表';
+
 SET FOREIGN_KEY_CHECKS = 1;
