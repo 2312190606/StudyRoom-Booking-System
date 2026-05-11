@@ -40,7 +40,7 @@
 - **特权保护**：已额外完成了管理员账号的“永不锁定”与“禁止禁用”逻辑。
 
 ## PR 链接
-- PR #10: https://github.com/2312190606/StudyRoom-Booking-System/pull/10
+- PR #10: https://github.com/2312190606/StudyRoom-Booking-System/compare/feature/lsh-frontend-doc?expand=1
 
 ## 遇到的问题和解决
 1. **问题**：Docker 构建后端时因 Maven 中央仓库连接不稳定导致失败。
