@@ -3,6 +3,7 @@ package com.example.studyroom.controller;
 import com.example.studyroom.common.Result;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +15,7 @@ import java.util.*;
 /**
  * AI 客服控制器（接入 DeepSeek API）
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/ai")
 public class AIController {

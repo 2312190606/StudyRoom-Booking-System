@@ -1,0 +1,18 @@
+# Exclude Maven cache, git, and development files
+target
+.git
+.gitignore
+.vscode
+.idea
+*.md
+.env
+.env.*
+pom.xml.*
+.mvn
+mvnw
+mvnw.cmd
+*.log
+*.class
+.java
+.git
+node_modules

@@ -9,3 +9,8 @@ spring:
       host: 127.0.0.1
       port: 6380
       database: 0
+
+studyroom:
+  jwt:
+    secret: dev-secret-key-for-local-testing-only-change-in-production
+    expiration: 86400000

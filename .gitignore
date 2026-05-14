@@ -39,3 +39,7 @@ build.log
 
 # PDFs
 *.pdf
+
+# Docker secrets
+secrets/
+*.txt

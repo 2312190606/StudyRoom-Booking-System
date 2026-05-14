@@ -7,3 +7,8 @@ spring:
     redis:
       host: redis
       port: 6379
+
+studyroom:
+  jwt:
+    secret: ${STUDYROOM_JWT_SECRET:prod-secret-key-must-be-set-in-production}
+    expiration: 86400000
