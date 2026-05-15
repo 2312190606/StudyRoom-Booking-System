@@ -20,7 +20,7 @@
         <hutool.version>5.8.25</hutool.version>
         <lombok.version>1.18.30</lombok.version>
         <easyexcel.version>3.3.3</easyexcel.version>
-        <bytebuddy.version>1.17.4</bytebuddy.version>
+        <bytebuddy.version>1.18.9</bytebuddy.version>
         <mockito.version>5.15.2</mockito.version>
     </properties>
     <dependencies>
@@ -167,7 +167,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.1.2</version>
                 <configuration>
-                    <argLine>-Djdk.attach.allowAttachSelf=true @{argLine}</argLine>
+                    <argLine>-Djdk.attach.allowAttachSelf=true --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/java.lang.invoke=ALL-UNNAMED -Dfile.encoding=UTF-8 @{argLine}</argLine>
                 </configuration>
             </plugin>
         </plugins>
