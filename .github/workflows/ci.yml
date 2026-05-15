@@ -29,6 +29,8 @@ jobs:
       - name: Run Maven tests
         run: mvn test
         working-directory: ./backend
+        env:
+          MAVEN_OPTS: "-Djdk.attach.allowAttachSelf=true"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
