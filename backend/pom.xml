@@ -19,7 +19,7 @@
         <jwt.version>0.12.3</jwt.version>
         <hutool.version>5.8.25</hutool.version>
         <lombok.version>1.18.30</lombok.version>
-        <easyexcel.version>3.3.3</easyexcel.version>
+        <easyexcel.version>4.0.3</easyexcel.version>
         <bytebuddy.version>1.18.9</bytebuddy.version>
         <mockito.version>5.15.2</mockito.version>
     </properties>
