@@ -4,6 +4,7 @@ import com.example.studyroom.model.entity.StudyTimeStat;
 import com.example.studyroom.model.entity.User;
 import com.example.studyroom.model.entity.Violation;
 import com.example.studyroom.security.JwtAuthenticationFilter;
+import com.example.studyroom.service.LoginAttemptService;
 import com.example.studyroom.service.UserService;
 import com.example.studyroom.utils.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +41,9 @@ public class UserControllerTest {
 
     @MockBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockBean
+    private LoginAttemptService loginAttemptService;
 
     @BeforeEach
     void setUp() {

@@ -3,6 +3,7 @@ package com.example.studyroom.controller;
 import com.example.studyroom.common.BaseException;
 import com.example.studyroom.security.JwtAuthenticationFilter;
 import com.example.studyroom.service.AuthService;
+import com.example.studyroom.service.LoginAttemptService;
 import com.example.studyroom.utils.JwtUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -34,6 +35,9 @@ public class AuthControllerTest {
 
     @MockBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockBean
+    private LoginAttemptService loginAttemptService;
 
     @Test
     void register_Success() throws Exception {

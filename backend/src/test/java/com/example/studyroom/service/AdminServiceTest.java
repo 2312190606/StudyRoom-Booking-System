@@ -66,6 +66,7 @@ public class AdminServiceTest {
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("testuser");
+        testUser.setStatus(1);
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.example.studyroom.controller;
 import com.example.studyroom.model.entity.Favorite;
 import com.example.studyroom.security.JwtAuthenticationFilter;
 import com.example.studyroom.service.FavoriteService;
+import com.example.studyroom.service.LoginAttemptService;
 import com.example.studyroom.utils.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,9 @@ public class FavoriteControllerTest {
 
     @MockBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockBean
+    private LoginAttemptService loginAttemptService;
 
     @BeforeEach
     void setUp() {

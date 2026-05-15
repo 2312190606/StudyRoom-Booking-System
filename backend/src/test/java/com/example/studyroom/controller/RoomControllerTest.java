@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.studyroom.model.entity.Seat;
 import com.example.studyroom.model.entity.StudyRoom;
 import com.example.studyroom.security.JwtAuthenticationFilter;
+import com.example.studyroom.service.LoginAttemptService;
 import com.example.studyroom.service.RoomService;
 import com.example.studyroom.utils.JwtUtils;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,9 @@ public class RoomControllerTest {
 
     @MockBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockBean
+    private LoginAttemptService loginAttemptService;
 
     @Test
     void getRooms_Success() throws Exception {

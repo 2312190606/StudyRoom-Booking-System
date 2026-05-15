@@ -5,6 +5,7 @@ import com.example.studyroom.model.entity.Seat;
 import com.example.studyroom.model.entity.StudyRoom;
 import com.example.studyroom.security.JwtAuthenticationFilter;
 import com.example.studyroom.service.AdminService;
+import com.example.studyroom.service.LoginAttemptService;
 import com.example.studyroom.utils.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,9 @@ public class AdminRoomControllerTest {
 
     @MockBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockBean
+    private LoginAttemptService loginAttemptService;
 
     @BeforeEach
     void setUp() {

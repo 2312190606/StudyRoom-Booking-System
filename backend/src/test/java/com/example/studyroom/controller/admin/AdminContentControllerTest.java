@@ -4,6 +4,7 @@ import com.example.studyroom.model.entity.Announcement;
 import com.example.studyroom.model.entity.Carousel;
 import com.example.studyroom.security.JwtAuthenticationFilter;
 import com.example.studyroom.service.AdminService;
+import com.example.studyroom.service.LoginAttemptService;
 import com.example.studyroom.utils.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,9 @@ public class AdminContentControllerTest {
 
     @MockBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockBean
+    private LoginAttemptService loginAttemptService;
 
     @BeforeEach
     void setUp() {
