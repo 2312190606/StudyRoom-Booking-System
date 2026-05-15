@@ -12,7 +12,6 @@ import AdminRoomsView from '../views/admin/Rooms.vue'
 import AdminBookingsView from '../views/admin/Bookings.vue'
 import AdminUsersView from '../views/admin/Users.vue'
 import AdminAnnouncementsView from '../views/admin/Announcements.vue'
-import AdminSettingsView from '../views/admin/Settings.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -93,11 +92,6 @@ const router = createRouter({
           path: 'announcements',
           name: 'admin-announcements',
           component: AdminAnnouncementsView
-        },
-        {
-          path: 'settings',
-          name: 'admin-settings',
-          component: AdminSettingsView
         }
       ]
     }

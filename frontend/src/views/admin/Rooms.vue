@@ -18,6 +18,8 @@ const form = ref({
   seatRows: 5,
   cols: 8,
   status: 1,
+  openingTime: '08:00:00',
+  closingTime: '22:00:00',
   image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800'
 })
 
@@ -92,6 +94,8 @@ const openAddModal = () => {
     seatRows: 5,
     cols: 8,
     status: 1,
+    openingTime: '08:00:00',
+    closingTime: '22:00:00',
     image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800'
   }
   showModal.value = true
@@ -111,25 +115,29 @@ const handleSaveRoom = async () => {
 
   showLoadingToast({ message: '保存中...', forbidClick: true })
   try {
+    // 补全秒数以符合后端LocalTime格式
+    const ensureFullTime = (t) => {
+      if (!t) return '08:00:00'
+      if (t.split(':').length === 2) return t + ':00'
+      return t
+    }
+
+    const payload = {
+      name: form.value.name,
+      location: form.value.location,
+      seatRows: form.value.seatRows,
+      cols: form.value.cols,
+      status: form.value.status,
+      openingTime: ensureFullTime(form.value.openingTime),
+      closingTime: ensureFullTime(form.value.closingTime),
+      image: form.value.image
+    }
+
     if (modalMode.value === 'add') {
-      await createRoom({
-        name: form.value.name,
-        location: form.value.location,
-        seatRows: form.value.seatRows,
-        cols: form.value.cols,
-        status: form.value.status,
-        image: form.value.image
-      })
+      await createRoom(payload)
       showNotify({ type: 'success', message: '自习室创建成功' })
     } else {
-      await updateRoom(form.value.id, {
-        name: form.value.name,
-        location: form.value.location,
-        seatRows: form.value.seatRows,
-        cols: form.value.cols,
-        status: form.value.status,
-        image: form.value.image
-      })
+      await updateRoom(form.value.id, payload)
       showNotify({ type: 'success', message: '自习室配置已更新' })
     }
     showModal.value = false
@@ -216,6 +224,18 @@ const saveLayoutChanges = async () => {
     closeToast()
     console.error('保存失败', error)
   }
+}
+// Time formatting helper
+const formatTimeInput = (field, event) => {
+  let val = event.target.value.replace(/\D/g, '') // 只保留数字
+  if (val.length > 4) val = val.slice(0, 4) // 最多4位
+  
+  let formatted = val
+  if (val.length >= 3) {
+    formatted = val.slice(0, 2) + ':' + val.slice(2)
+  }
+  
+  form.value[field] = formatted
 }
 </script>
 
@@ -370,6 +390,16 @@ const saveLayoutChanges = async () => {
                   {{ s.l }}
                 </button>
               </div>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <label class="text-[11px] font-black text-[#5A52FF] tracking-[0.2em] uppercase ml-1">开放时间</label>
+              <input :value="form.openingTime" @input="formatTimeInput('openingTime', $event)" type="tel" maxlength="5" placeholder="例: 0800" class="bg-[#0A0D18] border-2 border-[#1C2136] rounded-[22px] px-6 py-4 text-[14px] font-bold text-white focus:border-[#5A52FF] transition-all outline-none" />
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <label class="text-[11px] font-black text-[#5A52FF] tracking-[0.2em] uppercase ml-1">关闭时间</label>
+              <input :value="form.closingTime" @input="formatTimeInput('closingTime', $event)" type="tel" maxlength="5" placeholder="例: 2200" class="bg-[#0A0D18] border-2 border-[#1C2136] rounded-[22px] px-6 py-4 text-[14px] font-bold text-white focus:border-[#5A52FF] transition-all outline-none" />
             </div>
 
             <div class="flex flex-col gap-3 md:col-span-2">

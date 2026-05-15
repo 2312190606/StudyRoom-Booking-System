@@ -418,7 +418,7 @@ const handleQuickBook = async () => {
                 </div>
                 <div>
                   <div class="text-[11px] text-gray-400 font-medium">开放时间</div>
-                  <div class="text-sm font-black text-gray-900 mt-0.5">{{ room.openTime }}</div>
+                  <div class="text-sm font-black text-gray-900 mt-0.5">{{ room.openingTime ? room.openingTime.substring(0, 5) : '08:00' }} - {{ room.closingTime ? room.closingTime.substring(0, 5) : '22:00' }}</div>
                 </div>
               </div>
             </div>
@@ -503,7 +503,7 @@ const handleQuickBook = async () => {
                     </div>
                     <div>
                       <div class="text-[11px] text-gray-400 font-medium">开放时间</div>
-                      <div class="text-sm font-black text-gray-900 mt-0.5">{{ room.openTime }}</div>
+                      <div class="text-sm font-black text-gray-900 mt-0.5">{{ room.openingTime ? room.openingTime.substring(0, 5) : '08:00' }} - {{ room.closingTime ? room.closingTime.substring(0, 5) : '22:00' }}</div>
                     </div>
                   </div>
                 </div>
