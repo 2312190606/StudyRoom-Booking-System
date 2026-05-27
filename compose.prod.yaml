@@ -1,3 +1,5 @@
+name: studyroom-booking-system
+
 services:
   frontend:
     image: ghcr.io/${GITHUB_REPOSITORY}/frontend:latest

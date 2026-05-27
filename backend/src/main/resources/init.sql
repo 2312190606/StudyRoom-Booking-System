@@ -37,6 +37,12 @@ CREATE TABLE `study_rooms` (
   `opening_time` time DEFAULT '08:00:00',
   `closing_time` time DEFAULT '22:00:00',
   `description` text,
+  `seat_rows` int(11) DEFAULT '0' COMMENT '座位行数',
+  `cols` int(11) DEFAULT '0' COMMENT '座位列数',
+  `total_seats` int(11) DEFAULT '0' COMMENT '总座位数',
+  `available_seats` int(11) DEFAULT '0' COMMENT '可用座位数',
+  `image` varchar(255) DEFAULT NULL COMMENT '自习室图片',
+  `maintenance_seats` text COMMENT '维修座位',
   `status` int(11) DEFAULT '1',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -136,11 +142,28 @@ CREATE TABLE `violations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
+-- Table structure for login_attempts
+-- ----------------------------
+DROP TABLE IF EXISTS `login_attempts`;
+CREATE TABLE `login_attempts` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `account` varchar(100) NOT NULL COMMENT '学号/手机号/账号',
+  `ip` varchar(50) DEFAULT NULL COMMENT 'IP地址',
+  `fail_count` int(11) DEFAULT '0' COMMENT '失败次数',
+  `lock_until` datetime DEFAULT NULL COMMENT '锁定截止时间',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_account_lock` (`account`,`lock_until`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
 -- Records
 -- ----------------------------
 -- 默认密码：123456 (BCrypt加密)
-INSERT INTO `users` (`username`, `password`, `nickname`, `role`, `status`) VALUES ('admin', '$2a$10$7.8d9F7rU/K6m8l5p2r2eOu8vX.yX7s4E1v.f1P/7G7f7G7f7G7f7', '管理员', 1, 1);
-INSERT INTO `users` (`username`, `password`, `nickname`, `role`, `status`) VALUES ('user', '$2a$10$7.8d9F7rU/K6m8l5p2r2eOu8vX.yX7s4E1v.f1P/7G7f7G7f7G7f7', '普通用户', 2, 1);
+INSERT INTO `users` (`username`, `password`, `nickname`, `role`, `status`) VALUES ('admin', '$2a$10$E9q/H5wk6bFkwcTzpC7IpeFOifawo/cAKJN81cnEa/b.plfT8oQky', '管理员', 1, 1);
+INSERT INTO `users` (`username`, `password`, `nickname`, `role`, `status`) VALUES ('user', '$2a$10$E9q/H5wk6bFkwcTzpC7IpeFOifawo/cAKJN81cnEa/b.plfT8oQky', '普通用户', 2, 1);
+INSERT INTO `users` (`username`, `password`, `nickname`, `role`, `status`) VALUES ('123456', '$2a$10$E9q/H5wk6bFkwcTzpC7IpeFOifawo/cAKJN81cnEa/b.plfT8oQky', '系统管理员', 1, 1);
 
 -- 示例自习室
 INSERT INTO `study_rooms` (`name`, `location`, `floor`, `opening_time`, `closing_time`, `description`, `status`) VALUES ('A栋一楼自习室', 'A栋101', 1, '08:00:00', '22:00:00', '安静明亮，带窗户', 1);

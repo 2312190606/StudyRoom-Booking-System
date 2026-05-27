@@ -1,3 +1,5 @@
+name: studyroom-booking-system
+
 services:
   frontend:
     build: ./frontend
@@ -40,7 +42,7 @@ services:
       MYSQL_ROOT_PASSWORD: dev123
       MYSQL_DATABASE: study_room_db
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
       - ./backend/src/main/resources/init.sql:/docker-entrypoint-initdb.d/init.sql

@@ -25,6 +25,8 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chown -R nginx:nginx /var/cache/nginx && \
     chown -R nginx:nginx /var/log/nginx && \
+    chown -R nginx:nginx /etc/nginx && \
+    sed -i 's|pid .*nginx.pid;|pid /tmp/nginx.pid;|g' /etc/nginx/nginx.conf && \
     chmod -R 755 /usr/share/nginx/html
 
 # Switch to non-root user
@@ -35,6 +37,6 @@ EXPOSE 80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget -qO- http://localhost/health || exit 1
+    CMD wget -qO- http://127.0.0.1/health || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]
