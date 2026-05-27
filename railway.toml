@@ -1,0 +1,11 @@
+[build]
+builder = "docker"
+dockerfilePath = "backend/Dockerfile"
+
+[deploy]
+numReplicas = 1
+healthCheckPath = "/health"
+port = 8080
+
+[env]
+PRODUCTION = "true"
