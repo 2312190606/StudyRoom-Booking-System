@@ -3,77 +3,99 @@
 ## 部署架构
 
 ```
-┌─────────────────┐     ┌─────────────────┐
-│   Vercel (前端)  │ --> │  Railway (后端) │
-│  studyroom.ver  │     │   :8080 port    │
-│    cel.app      │     │                 │
-└─────────────────┘     └─────────────────┘
+┌─────────────────┐     ┌─────────────────────────────────────┐
+│   Vercel (前端)  │ --> │  Railway (后端 + MySQL)              │
+│  *.vercel.app   │     │  studyroom-booking-system-prod.up.  │
+│                 │     │  railway.app :8080                  │
+└─────────────────┘     └─────────────────────────────────────┘
 ```
 
 ## 1. 后端部署 (Railway)
 
 ### 1.1 创建项目
 1. 登录 [Railway](https://railway.app)
-2. New Project → 选择 GitHub 仓库
-3. 选择 `study-room-backend` 分支
+2. New Project → Deploy from GitHub repo
+3. 选择 GitHub 仓库
 
-### 1.2 配置环境变量
+### 1.2 配置根目录
+在 Project Settings → Root Directory 设置为 `backend`
+
+### 1.3 添加 MySQL 数据库
+1. Railway 控制台 → Add Plugin → MySQL
+2. 等待 MySQL 创建完成
+3. 在 Variables 页面获取自动生成的 `MYSQL_*` 变量
+
+### 1.4 配置环境变量
+
+在 Project Settings → Variables 添加：
 
 | 变量名 | 值 | 说明 |
 |--------|-----|------|
-| `DATABASE_URL` | `mysql://user:pass@host:3306/study_room_db` | MySQL 连接字符串 |
-| `STUDYROOM_JWT_SECRET` | 你的密钥 | JWT 签名密钥 |
+| `DATABASE_URL` | `mysql://root:{密码}@{主机}:3306/railway` | MySQL 连接字符串（需拼接） |
+| `STUDYROOM_JWT_SECRET` | `StudyRoomProductionSecretKey2026VeryLong` | JWT 密钥（至少32字符） |
 | `PRODUCTION` | `true` | 标记生产环境 |
 
-### 1.3 添加数据库
-1. Railway 控制台 → Add Plugin → MySQL
-2. 自动创建 `MYSQL_ROOT_PASSWORD` 等变量
+### 1.5 初始化数据库
+1. MySQL 插件 → Connection → SQL Editor
+2. 复制 `backend/src/main/resources/init.sql` 内容并执行
 
-### 1.4 部署
-Railway 自动检测 `railway.toml` 并构建 Docker 镜像。
+### 1.6 部署
+触发 Deploy，Railway 自动构建 Docker 镜像。
+
+### 1.7 验证
+访问 `https://studyroom-booking-system-production.up.railway.app/health`，返回 `{"status":"UP"}` 表示成功。
 
 ## 2. 前端部署 (Vercel)
 
 ### 2.1 创建项目
 1. 登录 [Vercel](https://vercel.com)
 2. Import GitHub 仓库
-3. 选择 `frontend` 作为 Root Directory
+3. Root Directory 设置为 `frontend`
 
-### 2.2 配置环境变量
+### 2.2 配置文件
+在 `frontend/vercel.json` 配置：
 
-| 变量名 | 值 | 说明 |
-|--------|-----|------|
-| `VITE_API_BASE_URL` | `https://studyroom-backend.up.railway.app/api` | 后端 API 地址 |
+```json
+{
+  "installCommand": "npm install --legacy-peer-deps",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://studyroom-booking-system-production.up.railway.app/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "buildCommand": "npm run build"
+}
+```
 
 ### 2.3 部署
-Vercel 自动构建静态资源并部署。
+Vercel 自动构建并部署。
+
+### 2.4 验证
+访问 Vercel 提供的域名，确认页面正常显示且 API 请求正常。
 
 ## 3. 配置文件说明
 
 ### railway.toml
+位置：`backend/railway.toml`
 ```toml
 [build]
-builder = "docker"
-dockerfilePath = "backend/Dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 numReplicas = 1
 healthCheckPath = "/health"
 port = 8080
-
-[env]
-PRODUCTION = "true"
 ```
 
 ### vercel.json
+位置：`frontend/vercel.json`
 ```json
 {
-  "builds": [
-    { "src": "frontend/**", "use": "@vercel/static" }
-  ],
+  "installCommand": "npm install --legacy-peer-deps",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://studyroom-backend.up.railway.app/api/$1" }
-  ]
+    { "source": "/api/(.*)", "destination": "https://studyroom-booking-system-production.up.railway.app/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "buildCommand": "npm run build"
 }
 ```
 
@@ -94,7 +116,16 @@ PRODUCTION = "true"
 - 可在 Settings → Networking 添加自定义域名
 - 自动启用 HTTPS
 
-## 6. 本地开发
+## 6. 常见问题
+
+| 问题 | 解决 |
+|------|------|
+| Railway 构建失败 | 确认 Root Directory 为 `backend`，railway.toml 放在 `backend/` 内 |
+| Vercel npm 依赖冲突 | 使用 `--legacy-peer-deps` 参数 |
+| 页面 404 | 确认 vercel.json 中 rewrite 规则正确 |
+| 后端无法连接数据库 | 检查 DATABASE_URL 格式是否正确 |
+
+## 7. 本地开发
 
 后端本地运行：
 ```bash
