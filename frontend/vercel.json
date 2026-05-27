@@ -1,10 +1,9 @@
 {
   "installCommand": "npm install --legacy-peer-deps",
-  "redirects": [
+  "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://studyroom-booking-system-production.up.railway.app/api/$1",
-      "permanent": false
+      "source": "/api/:path*",
+      "destination": "https://studyroom-booking-system-production.up.railway.app/api/:path*"
     }
   ],
   "buildCommand": "npm run build"
