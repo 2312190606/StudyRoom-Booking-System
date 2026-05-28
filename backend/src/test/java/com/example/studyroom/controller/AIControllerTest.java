@@ -7,6 +7,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import javax.sql.DataSource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 
@@ -28,6 +29,9 @@ public class AIControllerTest {
 
     @MockBean
     private RestTemplate restTemplate;
+
+    @MockBean
+    private DataSource dataSource;
 
     @Test
     void chat_Success() throws Exception {

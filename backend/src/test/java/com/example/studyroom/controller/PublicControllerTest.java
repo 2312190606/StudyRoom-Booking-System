@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import javax.sql.DataSource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
@@ -33,6 +34,9 @@ public class PublicControllerTest {
 
     @MockBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockBean
+    private DataSource dataSource;
 
     @Test
     void getCarousels_Success() throws Exception {

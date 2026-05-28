@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import javax.sql.DataSource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
@@ -40,6 +41,9 @@ public class RoomControllerTest {
 
     @MockBean
     private LoginAttemptService loginAttemptService;
+
+    @MockBean
+    private DataSource dataSource;
 
     @Test
     void getRooms_Success() throws Exception {

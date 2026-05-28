@@ -12,7 +12,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
+
+import javax.sql.DataSource;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -29,6 +33,9 @@ public class AuthControllerTest {
 
     @MockBean
     private AuthService authService;
+
+    @MockBean
+    private DataSource dataSource;
 
     @MockBean
     private JwtUtils jwtUtils;

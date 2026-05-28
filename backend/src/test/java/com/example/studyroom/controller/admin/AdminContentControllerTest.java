@@ -13,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import javax.sql.DataSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -42,6 +43,9 @@ public class AdminContentControllerTest {
 
     @MockBean
     private LoginAttemptService loginAttemptService;
+
+    @MockBean
+    private DataSource dataSource;
 
     @BeforeEach
     void setUp() {
