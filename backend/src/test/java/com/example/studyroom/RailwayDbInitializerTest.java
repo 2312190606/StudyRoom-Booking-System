@@ -1,5 +1,6 @@
 package com.example.studyroom;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -7,6 +8,7 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 import java.sql.Connection;
 
+@Disabled("Manual integration test - requires external Railway database connection")
 public class RailwayDbInitializerTest {
 
     @Test
