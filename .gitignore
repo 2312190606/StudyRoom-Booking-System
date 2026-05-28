@@ -32,6 +32,7 @@ redis-data/
 
 # Logs
 build.log
+logs/
 
 # Coverage
 **/coverage/
