@@ -20,7 +20,7 @@ mybatis-plus:
 # DeepSeek API 配置
 ai:
   deepseek:
-    api-key: ${DEEPSEEK_API_KEY:}
+    api-key: sk-987de2f40e704872b567950739efa3b5
 
 # Actuator 监控配置
 management:

@@ -18,29 +18,37 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      redirect: '/login'
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: RegisterView
+    },
+    {
+      path: '/home',
       component: UserLayout,
-      redirect: () => {
-        const token = localStorage.getItem('token')
-        return token ? '/home' : '/login'
-      },
+      meta: { requiresAuth: true },
       children: [
         {
-          path: 'home',
+          path: '',
           name: 'home',
-          component: HomeView,
-          meta: { requiresAuth: true }
+          component: HomeView
         },
         {
           path: 'profile',
           name: 'profile',
-          component: ProfileView,
-          meta: { requiresAuth: true }
+          component: ProfileView
         },
         {
           path: 'reservations',
           name: 'reservations',
-          component: ReservationsView,
-          meta: { requiresAuth: true }
+          component: ReservationsView
         },
         {
           path: 'guide',
@@ -53,16 +61,6 @@ const router = createRouter({
           component: AboutView
         }
       ]
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: LoginView
-    },
-    {
-      path: '/register',
-      name: 'register',
-      component: RegisterView
     },
     {
       path: '/admin',

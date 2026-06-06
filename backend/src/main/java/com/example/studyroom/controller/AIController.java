@@ -137,7 +137,7 @@ public class AIController {
 
         // 构建请求体
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "deepseek-chat");
+        requestBody.put("model", "deepseek-v4-flash");
         requestBody.put("messages", messages);
         requestBody.put("max_tokens", 500);
 

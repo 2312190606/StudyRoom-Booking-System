@@ -24,6 +24,7 @@ GEMINI.md
 **/api.md
 **/backend.md
 /backend/target/
+backend/.env.example
 
 # 数据库数据目录
 mysql-data/
