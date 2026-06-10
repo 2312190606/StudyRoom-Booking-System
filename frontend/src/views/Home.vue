@@ -433,7 +433,7 @@ const handleQuickBook = async () => {
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
         <div v-for="room in studyRooms" :key="room.id" class="bg-white rounded-[1.25rem] overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition duration-300 group">
           <!-- Image -->
-          <div class="h-32 sm:h-48 lg:h-auto aspect-video overflow-hidden rounded-t-[1.5rem]>
+          <div class="h-32 sm:h-48 lg:h-auto aspect-video overflow-hidden rounded-t-[1.5rem]">
             <img :src="room.image" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
             <!-- Tag removed -->
           </div>
@@ -518,7 +518,7 @@ const handleQuickBook = async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div v-for="room in studyRooms" :key="'modal-'+room.id" class="bg-white rounded-[1.25rem] overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition duration-300 group">
               <!-- Image -->
-              <div class="h-32 sm:h-48 lg:h-auto aspect-video overflow-hidden rounded-t-[1.5rem]>
+              <div class="h-32 sm:h-48 lg:h-auto aspect-video overflow-hidden rounded-t-[1.5rem]">
                 <img :src="room.image" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                 <!-- Tag removed -->
               </div>
