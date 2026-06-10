@@ -39,7 +39,7 @@ const handleLogout = () => {
   <header class="w-full bg-white flex justify-center sticky top-0 z-50 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border-b border-gray-100">
     <div class="w-full px-8 md:px-12 lg:px-20 h-16 flex items-center justify-between">
       <!-- Logo -->
-      <div class="flex items-center gap-2.5 text-[#5A52FF] font-black text-xl cursor-pointer" @click="router.push('/home')">
+      <div class="flex items-center gap-2.5 text-[#5A52FF] font-black text-xl cursor-pointer" @click="router.push('/')">
         <div class="w-8 h-8 bg-[#5A52FF] rounded-lg flex items-center justify-center shadow-md shadow-indigo-200">
           <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         </div>
@@ -48,7 +48,7 @@ const handleLogout = () => {
 
       <!-- Nav Links -->
       <nav class="hidden md:flex items-center gap-10 text-[14px] font-bold text-gray-400">
-        <router-link to="/home" class="flex items-center gap-1.5 transition-colors" :class="route.path === '/home' ? 'text-[#5A52FF]' : 'hover:text-[#5A52FF]'">
+        <router-link to="/" class="flex items-center gap-1.5 transition-colors" :class="route.path === '/' ? 'text-[#5A52FF]' : 'hover:text-[#5A52FF]'">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>首页
         </router-link>
         <router-link to="/reservations" class="flex items-center gap-1.5 transition-colors" :class="route.path === '/reservations' ? 'text-[#5A52FF]' : 'hover:text-[#5A52FF]'">

@@ -17,10 +17,6 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
-      redirect: '/login'
-    },
-    {
       path: '/login',
       name: 'login',
       component: LoginView
@@ -31,7 +27,7 @@ const router = createRouter({
       component: RegisterView
     },
     {
-      path: '/home',
+      path: '/',
       component: UserLayout,
       meta: { requiresAuth: true },
       children: [
@@ -101,6 +97,11 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   const userRole = localStorage.getItem('userRole')
 
+  // 已登录用户访问登录页，跳转到首页
+  if (to.path === '/login' && token) {
+    return next('/')
+  }
+
   // 需要登录的页面
   if (to.meta.requiresAuth && !token) {
     return next('/login')
@@ -108,12 +109,7 @@ router.beforeEach((to, from, next) => {
 
   // 需要管理员权限的页面
   if (to.meta.requiresAdmin && userRole !== 'admin') {
-    return next('/home')
-  }
-
-  // 已登录用户访问登录页，跳转到首页
-  if (to.path === '/login' && token) {
-    return next('/home')
+    return next('/')
   }
 
   next()

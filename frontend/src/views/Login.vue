@@ -40,7 +40,7 @@ const handleLogin = async () => {
     }
 
     showToast('登录成功')
-    router.push('/home')
+    router.push('/')
   } catch (error) {
     // 错误已在 api/client.js 的拦截器中处理
     console.error('登录失败', error)
