@@ -42,8 +42,10 @@ CREATE TABLE `study_rooms` (
   `total_seats` int(11) DEFAULT '0' COMMENT '总座位数',
   `available_seats` int(11) DEFAULT '0' COMMENT '可用座位数',
   `image` varchar(255) DEFAULT NULL COMMENT '自习室图片',
-  `maintenance_seats` text COMMENT '维修座位',
+   `maintenance_seats` text COMMENT '维修座位',
   `status` int(11) DEFAULT '1',
+  `latitude` decimal(10, 8) DEFAULT NULL COMMENT '纬度',
+  `longitude` decimal(11, 8) DEFAULT NULL COMMENT '经度',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

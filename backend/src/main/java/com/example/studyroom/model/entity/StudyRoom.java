@@ -42,8 +42,18 @@ public class StudyRoom {
      */
     private String maintenanceSeats;
 
-    /**
+       /**
      * 运营状态 (0: 维护中/关闭, 1: 开放)
      */
     private Integer status;
+
+    /**
+     * 纬度
+     */
+    private Double latitude;
+
+    /**
+     * 经度
+     */
+    private Double longitude;
 }

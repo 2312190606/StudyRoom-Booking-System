@@ -78,7 +78,9 @@ public class ReservationController {
      */
     @PostMapping("/{id}/check-in")
     public Result<?> checkIn(@PathVariable Long id, @RequestBody(required = false) CheckInDTO checkInDTO) {
-        reservationService.checkIn(id, getCurrentUserId());
+        Double latitude = checkInDTO != null ? checkInDTO.getLatitude() : null;
+        Double longitude = checkInDTO != null ? checkInDTO.getLongitude() : null;
+        reservationService.checkIn(id, getCurrentUserId(), latitude, longitude);
         return Result.success();
     }
 

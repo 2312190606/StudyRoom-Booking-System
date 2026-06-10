@@ -216,7 +216,7 @@ public class ReservationServiceTest {
     void checkIn_Success() {
         when(reservationMapper.selectById(1L)).thenReturn(testReservation);
 
-        assertDoesNotThrow(() -> reservationService.checkIn(1L, 1L));
+        assertDoesNotThrow(() -> reservationService.checkIn(1L, 1L, null, null));
 
         verify(reservationMapper).updateById(any(Reservation.class));
         verify(userService).addCreditScore(1L, 5);
@@ -231,7 +231,7 @@ public class ReservationServiceTest {
         when(reservationMapper.selectById(1L)).thenReturn(testReservation);
 
         BaseException exception = assertThrows(BaseException.class,
-                () -> reservationService.checkIn(1L, 1L));
+                () -> reservationService.checkIn(1L, 1L, null, null));
 
         assertEquals("当前状态不可签到", exception.getMessage());
     }

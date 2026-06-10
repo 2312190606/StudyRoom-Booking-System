@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { getRooms, getRoomSeats } from '../api/rooms'
-import { createReservation } from '../api/reservations'
+import { createReservation, getMyReservations } from '../api/reservations'
 
 const router = useRouter()
 
@@ -14,6 +14,7 @@ const currentRoom = ref(null)
 const seats = ref([])
 const bookingSuccessMsg = ref(false)
 const showFailToastMsg = ref(false)
+const failToastMessage = ref('')
 
 // 公告相关
 const announcements = ref([])
@@ -52,6 +53,9 @@ const selectedSeatForFrequent = ref(null)
 
 // 真实数据
 const studyRooms = ref([])
+
+// 当前用户的预约列表（用于标记自己预约的座位为黄色）
+const myReservations = ref([])
 
 // 后端座位状态: 0=维修, 1=可用, 2=占用
 // 前端显示状态: 'maintenance', 'available', 'occupied'
@@ -135,6 +139,32 @@ const loadSeats = async (roomId, maintenanceSeats) => {
   }
 }
 
+// 加载当前用户的预约列表
+const loadMyReservations = async () => {
+  try {
+    const data = await getMyReservations({ page: 1, size: 100 })
+    myReservations.value = data.records || []
+  } catch (error) {
+    console.error('加载我的预约失败', error)
+  }
+}
+
+// 标记当前用户预约的座位为黄色（booked）
+const markMyBookedSeats = (roomId) => {
+  if (!allRoomsSeats.value[roomId]) return
+  const bookedSeatIds = new Set(
+    myReservations.value
+      .filter(r => r.status === 1 || r.status === 2) // 待使用或使用中
+      .map(r => r.seatId)
+  )
+  allRoomsSeats.value[roomId] = allRoomsSeats.value[roomId].map(seat => {
+    if (bookedSeatIds.has(seat.id) && seat.status !== 'maintenance') {
+      return { ...seat, status: 'booked' }
+    }
+    return seat
+  })
+}
+
 const initRooms = async () => {
   await loadRooms()
   // 预加载所有自习室的座位数据
@@ -175,15 +205,18 @@ const generateSeats = () => {
     }
     const maintenanceSet = new Set(maintenanceSeats)
 
-    // 如果缓存座位数量与期望数量不匹配，重新生成
-    if (cachedSeats.length !== expectedCount) {
+    // 始终优先使用真实座位数据，忽略数量匹配问题
+    if (cachedSeats.length > 0) {
+      seats.value = cachedSeats
+    } else {
+      // 没有API数据时生成，使用数字ID格式
       const generatedSeats = []
       for (let r = 1; r <= rows; r++) {
         for (let c = 1; c <= cols; c++) {
           const rowLetter = String.fromCharCode(64 + r)
           const posKey = `${r}-${c}`
           generatedSeats.push({
-            id: `${r}-${c}`,
+            id: r * 100 + c,
             seatNumber: `${rowLetter}${c}`,
             status: maintenanceSet.has(posKey) ? 'maintenance' : 'available',
             positionX: r,
@@ -192,8 +225,6 @@ const generateSeats = () => {
         }
       }
       seats.value = generatedSeats
-    } else {
-      seats.value = cachedSeats
     }
   }
 }
@@ -203,6 +234,8 @@ const openRoomLayout = async (roomId, forceMode) => {
   showAllRooms.value = false
   // 重新加载自习室数据，确保 maintenanceSeats 是最新的
   await loadRooms()
+  // 加载当前用户的预约列表
+  await loadMyReservations()
   currentRoom.value = studyRooms.value.find(r => r.id === roomId)
   // 获取维修座位列表
   let maintenanceSeats = []
@@ -215,6 +248,8 @@ const openRoomLayout = async (roomId, forceMode) => {
   }
   // 每次都强制重新加载座位数据，确保显示最新状态
   await loadSeats(roomId, maintenanceSeats)
+  // 标记当前用户预约的座位为黄色
+  markMyBookedSeats(roomId)
   generateSeats()
   showSeatModal.value = true
 }
@@ -257,6 +292,12 @@ const selectSeat = async (seat) => {
         endTime: formatTime(endTime)
       })
 
+      // 预约成功后刷新预约列表和座位状态
+      await loadMyReservations()
+      markMyBookedSeats(currentRoom.value.id)
+      generateSeats()
+
+      // 预约成功后直接跳转，让用户看到预约成功的提示
       bookingSuccessMsg.value = true;
       setTimeout(() => {
         bookingSuccessMsg.value = false;
@@ -294,12 +335,14 @@ const cancelSetFrequent = () => {
 
 const handleQuickBook = async () => {
   if (!frequentSeat.value) {
+    failToastMessage.value = '请先设置常用座位'
     showFailToastMsg.value = true
     setTimeout(() => { showFailToastMsg.value = false }, 1500)
     return
   }
 
   if (frequentSeatStatus.value !== 'available') {
+    failToastMessage.value = '该座位目前不可用'
     showFailToastMsg.value = true
     setTimeout(() => { showFailToastMsg.value = false }, 1500)
     return
@@ -322,6 +365,9 @@ const handleQuickBook = async () => {
       startTime: formatTime(startTime),
       endTime: formatTime(endTime)
     })
+
+    // 重新加载所有自习室的座位数据以更新状态
+    await initRooms()
 
     bookingSuccessMsg.value = true
     setTimeout(() => {
@@ -588,8 +634,8 @@ const handleQuickBook = async () => {
       <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-2 shadow-[0_4px_16px_rgba(239,68,68,0.2)]">
         <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
       </div>
-      <div class="text-xl font-black tracking-wide text-white">该座位目前不可用</div>
-      <div class="text-sm font-bold text-gray-400 tracking-wider">该常用座位可能被占用或在维护中</div>
+      <div class="text-xl font-black tracking-wide text-white">{{ failToastMessage }}</div>
+      <div class="text-sm font-bold text-gray-400 tracking-wider">请先点击"设置常用"选择一个常用座位</div>
     </div>
 
     <!-- Confirm Frequent Seat Modal -->

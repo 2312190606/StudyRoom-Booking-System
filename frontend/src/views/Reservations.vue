@@ -1,12 +1,20 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { showLoadingToast, showSuccessToast, showFailToast } from 'vant'
+import { showLoadingToast, showSuccessToast, showFailToast, showConfirmDialog } from 'vant'
 import { getMyReservations, cancelReservation, extendReservation, checkIn, endStudy, deleteReservation } from '../api/reservations'
+import AMapLoader from '@amap/amap-jsapi-loader'
 
 const activeTab = ref('current')
 const isSigning = ref(false)
 const currentLocation = ref('')
 const loading = ref(false)
+
+// 签到地图相关
+const showCheckInMap = ref(false)
+const checkInMapContainer = ref(null)
+const checkInMapInstance = ref(null)
+const userMarker = ref(null)
+const roomMarker = ref(null)
 
 // 真实预约数据
 const reservations = ref([])
@@ -104,22 +112,133 @@ const handleSign = async () => {
   if (!currentReservation.value || isSigning.value) return
 
   isSigning.value = true
-  const toast = showLoadingToast({
-    message: '正在签到...',
-    forbidClick: true,
-    duration: 0,
-  })
+  showCheckInMap.value = true
 
   try {
-    await checkIn(currentReservation.value.id)
+    // 使用高德地图定位服务获取更精确的位置
+    const userLatLng = await new Promise((resolve, reject) => {
+      // 先确保 AMap 加载
+      window._AMapSecurityConfig = {
+        securityJsCode: 'ab52c7df26d6d0b3f7530de9df51738b',
+      }
+
+      AMapLoader.load({
+        key: '8cd4ca87d4e2e73049af8b8a59537cab',
+        version: '2.0',
+        plugins: ['AMap.Geolocation'],
+      }).then((AMap) => {
+        const geolocation = new AMap.Geolocation({
+          enableHighAccuracy: true,
+          timeout: 10000,
+        })
+
+        geolocation.getCurrentPosition((status, result) => {
+          if (status === 'complete') {
+            resolve(result.position)
+          } else {
+            reject(new Error('定位失败'))
+          }
+        })
+      }).catch(() => {
+        // 如果高德定位失败，回退到浏览器原生定位
+        navigator.geolocation.getCurrentPosition(
+          (position) => resolve({ lng: position.coords.longitude, lat: position.coords.latitude }),
+          reject
+        )
+      })
+    })
+
+    const userLat = userLatLng.lat
+    const userLng = userLatLng.lng
+
+    // 初始化签到地图
+    await initCheckInMap(userLat, userLng)
+  } catch (error) {
+    showFailToast('无法获取您当前位置，请检查定位权限')
+    showCheckInMap.value = false
+    isSigning.value = false
+  }
+}
+
+// 确认签到
+const confirmCheckIn = async () => {
+  if (!currentReservation.value || !checkInMapInstance.value) return
+
+  const toast = showLoadingToast({ message: '正在签到...', forbidClick: true })
+  try {
+    // 从地图中心获取当前位置
+    const center = checkInMapInstance.value.getCenter()
+    await checkIn(currentReservation.value.id, { latitude: center.lat, longitude: center.lng })
     toast.close()
     showSuccessToast('签到成功')
+    showCheckInMap.value = false
+    isSigning.value = false
     await loadReservations()
   } catch (error) {
     toast.close()
-    showFailToast('签到失败')
-  } finally {
-    isSigning.value = false
+  }
+}
+
+// 取消签到
+const cancelCheckIn = () => {
+  showCheckInMap.value = false
+  isSigning.value = false
+}
+
+// 初始化签到地图
+const initCheckInMap = async (userLat, userLng) => {
+  if (!checkInMapContainer.value) return
+
+  try {
+    window._AMapSecurityConfig = {
+      securityJsCode: 'ab52c7df26d6d0b3f7530de9df51738b',
+    }
+
+    const AMap = await AMapLoader.load({
+      key: '8cd4ca87d4e2e73049af8b8a59537cab',
+      version: '2.0',
+      plugins: ['AMap.Scale'],
+    })
+
+    // 自习室位置（从预约信息获取）
+    const roomLat = currentReservation.value.latitude
+    const roomLng = currentReservation.value.longitude
+    console.log('Room position:', roomLat, roomLng)
+    console.log('User position:', userLat, userLng)
+
+    // 创建地图，以用户位置为中心
+    checkInMapInstance.value = new AMap.Map(checkInMapContainer.value, {
+      zoom: 15,
+      center: [userLng, userLat],
+      viewMode: '2D',
+    })
+
+    // 添加比例尺
+    checkInMapInstance.value.addControl(new AMap.Scale())
+
+    // 添加用户位置标记（绿色）
+    userMarker.value = new AMap.Marker({
+      position: [userLng, userLat],
+      title: '您的位置',
+      label: { content: '您的位置', color: '#22c55e', fontSize: '12px' },
+    })
+    checkInMapInstance.value.add(userMarker.value)
+
+    // 添加自习室位置标记（红色）
+    roomMarker.value = new AMap.Marker({
+      position: [roomLng, roomLat],
+      title: '自习室位置',
+      label: { content: '自习室', color: '#ef4444', fontSize: '12px' },
+    })
+    checkInMapInstance.value.add(roomMarker.value)
+
+    // 如果自习室位置与用户位置差距较大，缩放以显示两者
+    const distance = Math.sqrt(Math.pow(userLat - roomLat, 2) + Math.pow(userLng - roomLng, 2))
+    if (distance > 0.01) {
+      checkInMapInstance.value.setFitView()
+    }
+  } catch (e) {
+    console.error('地图加载失败:', e)
   }
 }
 
@@ -348,6 +467,24 @@ onMounted(() => {
           </div>
         </div>
       </div>
+
+	    <!-- Check-in Map -->
+	    <div v-if="showCheckInMap" class="fixed bottom-0 left-0 right-0 z-[200] bg-white rounded-t-[32px] shadow-2xl animate-modal">
+	        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+	          <div>
+	            <h2 class="text-xl font-black text-gray-900">签到确认</h2>
+	          </div>
+		        </div>
+	        <div ref="checkInMapContainer" class="w-full h-[350px] bg-gray-100"></div>
+	        <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3 bg-gray-50">
+	            <button @click="cancelCheckIn" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl text-sm font-bold border-none cursor-pointer hover:bg-gray-300 transition-all">
+	              取消
+	            </button>
+	            <button @click="confirmCheckIn" class="px-6 py-3 bg-[#5A52FF] text-white rounded-xl text-sm font-bold border-none cursor-pointer hover:bg-[#4a42e5] transition-all">
+	              确认签到
+	            </button>
+	          </div>
+	    </div>
 
   </div>
 </template>

@@ -2,14 +2,17 @@ package com.example.studyroom.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.studyroom.mapper.ReservationMapper;
 import com.example.studyroom.mapper.SeatMapper;
 import com.example.studyroom.mapper.StudyRoomMapper;
+import com.example.studyroom.model.entity.Reservation;
 import com.example.studyroom.model.entity.Seat;
 import com.example.studyroom.model.entity.StudyRoom;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -23,6 +26,9 @@ public class RoomService {
 
     @Autowired
     private SeatMapper seatMapper;
+
+    @Autowired
+    private ReservationMapper reservationMapper;
 
     /**
      * 分页查询自习室
@@ -52,17 +58,36 @@ public class RoomService {
                 .eq(Seat::getRoomId, roomId)
                 .orderByAsc(Seat::getPositionX, Seat::getPositionY));
 
-        // 标记维修中的座位
+        // 当前时间，用于检查座位是否被预约
+        LocalDateTime now = LocalDateTime.now();
+
+        // 解析维修座位位置集合
+        String[] maintenancePositions = new String[0];
         if (room != null && room.getMaintenanceSeats() != null) {
-            String[] maintenancePositions = room.getMaintenanceSeats()
+            maintenancePositions = room.getMaintenanceSeats()
                     .replace("[", "").replace("]", "").replace("\"", "").split(",");
-            for (Seat seat : seats) {
-                String pos = seat.getPositionX() + "-" + seat.getPositionY();
-                for (String m : maintenancePositions) {
-                    if (m.trim().equals(pos)) {
-                        seat.setStatus(0); // 维修中
-                        break;
-                    }
+        }
+
+        for (Seat seat : seats) {
+            String pos = seat.getPositionX() + "-" + seat.getPositionY();
+            boolean isMaintenance = false;
+            for (String m : maintenancePositions) {
+                if (m.trim().equals(pos)) {
+                    isMaintenance = true;
+                    break;
+                }
+            }
+            if (isMaintenance) {
+                seat.setStatus(0); // 维修中
+            } else {
+                // 检查该座位当前是否有活跃预约（正在进行中）
+                Long activeCount = reservationMapper.selectCount(new LambdaQueryWrapper<Reservation>()
+                        .eq(Reservation::getSeatId, seat.getId())
+                        .in(Reservation::getStatus, 1, 2) // 待使用(1)或使用中(2)
+                        .lt(Reservation::getStartTime, now.plusHours(24)) // 开始时间在24小时内
+                        .gt(Reservation::getEndTime, now)); // 结束时间在当前时间之后（仍在进行）
+                if (activeCount > 0) {
+                    seat.setStatus(2); // 已被预约/占用
                 }
             }
         }

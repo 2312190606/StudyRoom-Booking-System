@@ -52,4 +52,12 @@ public class Reservation {
     // 关联的用户名（非数据库字段）
     @TableField(exist = false)
     private String userName;
+
+    // 关联的自习室纬度（非数据库字段）
+    @TableField(exist = false)
+    private Double latitude;
+
+    // 关联的自习室经度（非数据库字段）
+    @TableField(exist = false)
+    private Double longitude;
 }

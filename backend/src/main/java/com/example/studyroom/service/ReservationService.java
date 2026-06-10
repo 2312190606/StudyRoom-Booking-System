@@ -65,7 +65,18 @@ public class ReservationService {
             throw new BaseException("该时段座位已被预约");
         }
 
-        // 4. 创建预约
+        // 4. 检查该用户是否已有活跃预约（同一用户不能同时预约多个座位）
+        Long userActiveCount = reservationMapper.selectCount(new LambdaQueryWrapper<Reservation>()
+                .eq(Reservation::getUserId, userId)
+                .in(Reservation::getStatus, 1, 2) // 待使用或使用中
+                .lt(Reservation::getStartTime, endTime)
+                .gt(Reservation::getEndTime, startTime));
+
+        if (userActiveCount > 0) {
+            throw new BaseException("您已有一个正在使用或待使用的预约，请先取消或完成当前预约后再预约新座位");
+        }
+
+        // 5. 创建预约
         Reservation reservation = new Reservation();
         reservation.setUserId(userId);
         reservation.setSeatId(seatId);
@@ -94,6 +105,8 @@ public class ReservationService {
                 StudyRoom room = studyRoomMapper.selectById(seat.getRoomId());
                 if (room != null) {
                     r.setRoomName(room.getName());
+                    r.setLatitude(room.getLatitude());
+                    r.setLongitude(room.getLongitude());
                 }
             }
         }
@@ -176,8 +189,12 @@ public class ReservationService {
 
     /**
      * 签到
+     * @param id 预约ID
+     * @param userId 用户ID
+     * @param latitude 用户纬度
+     * @param longitude 用户经度
      */
-    public void checkIn(Long id, Long userId) {
+    public void checkIn(Long id, Long userId, Double latitude, Double longitude) {
         Reservation reservation = reservationMapper.selectById(id);
         if (reservation == null || !reservation.getUserId().equals(userId)) {
             throw new BaseException("预约不存在或无权操作");
@@ -186,7 +203,27 @@ public class ReservationService {
             throw new BaseException("当前状态不可签到");
         }
 
-        // 这里可以添加定位校验逻辑
+        // 获取座位对应的自习室
+        Seat seat = seatMapper.selectById(reservation.getSeatId());
+        if (seat == null) {
+            throw new BaseException("座位信息不存在");
+        }
+        StudyRoom room = studyRoomMapper.selectById(seat.getRoomId());
+        if (room == null) {
+            throw new BaseException("自习室信息不存在");
+        }
+
+        // 如果自习室设置了经纬度，则进行距离校验
+        if (room.getLatitude() != null && room.getLongitude() != null && latitude != null && longitude != null) {
+            double distance = calculateDistance(
+                latitude, longitude,
+                room.getLatitude(), room.getLongitude()
+            );
+            // 允许签到范围：200米
+            if (distance > 200) {
+                throw new BaseException("不在签到范围内，请到自习室附近再试");
+            }
+        }
 
         reservation.setCheckInTime(LocalDateTime.now());
         reservation.setStatus(2); // 使用中
@@ -194,6 +231,25 @@ public class ReservationService {
 
         // 签到成功，增加5分信誉分
         userService.addCreditScore(userId, 5);
+    }
+
+    /**
+     * 计算两点之间的直线距离（单位：米）
+     * 使用 Haversine 公式
+     */
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final double R = 6371000; // 地球半径（米）
+        double lat1Rad = Math.toRadians(lat1);
+        double lat2Rad = Math.toRadians(lat2);
+        double deltaLat = Math.toRadians(lat2 - lat1);
+        double deltaLon = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+                  Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                  Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c;
     }
 
     /**

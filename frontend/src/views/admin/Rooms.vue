@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { showConfirmDialog, showNotify, showLoadingToast, closeToast } from 'vant'
 import { getAdminRooms, createRoom, updateRoom, deleteRoom } from '../../api/admin'
+import AMapLoader from '@amap/amap-jsapi-loader'
 
 const loading = ref(false)
 const roomsList = ref([])
@@ -20,12 +21,21 @@ const form = ref({
   status: 1,
   openingTime: '08:00:00',
   closingTime: '22:00:00',
-  image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800'
+  image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800',
+  latitude: null,
+  longitude: null
 })
 
 // Layout Setting State
 const showLayoutModal = ref(false)
 const currentLayoutRoom = ref(null)
+
+// 地图选择器状态
+const showMapPicker = ref(false)
+const mapPickerCallback = ref(null)
+const mapContainer = ref(null)
+let mapInstance = null
+let markerInstance = null
 const layoutTempData = ref({
   rows: 0,
   cols: 0,
@@ -85,7 +95,7 @@ const filteredRooms = computed(() => {
 // Actions
 const openAddModal = () => {
   modalMode.value = 'add'
-  form.value = {
+   form.value = {
     id: null,
     name: '',
     location: '',
@@ -96,7 +106,9 @@ const openAddModal = () => {
     status: 1,
     openingTime: '08:00:00',
     closingTime: '22:00:00',
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800'
+    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800',
+    latitude: null,
+    longitude: null
   }
   showModal.value = true
 }
@@ -130,7 +142,9 @@ const handleSaveRoom = async () => {
       status: form.value.status,
       openingTime: ensureFullTime(form.value.openingTime),
       closingTime: ensureFullTime(form.value.closingTime),
-      image: form.value.image
+      image: form.value.image,
+      latitude: form.value.latitude,
+      longitude: form.value.longitude
     }
 
     if (modalMode.value === 'add') {
@@ -229,14 +243,180 @@ const saveLayoutChanges = async () => {
 const formatTimeInput = (field, event) => {
   let val = event.target.value.replace(/\D/g, '') // 只保留数字
   if (val.length > 4) val = val.slice(0, 4) // 最多4位
-  
+
   let formatted = val
   if (val.length >= 3) {
     formatted = val.slice(0, 2) + ':' + val.slice(2)
   }
-  
+
   form.value[field] = formatted
 }
+
+// 打开地图选择器
+const openMapPicker = (callback) => {
+  console.log('openMapPicker called, callback:', typeof callback)
+  mapPickerCallback.value = callback
+  showMapPicker.value = true
+  console.log('showMapPicker set to:', showMapPicker.value)
+}
+
+//地图点击选择位置
+const handleMapClick = (e) => {
+  const lngLat = e.lnglat
+  if (mapPickerCallback.value) {
+    mapPickerCallback.value(lngLat.lng, lngLat.lat)
+  }
+  showMapPicker.value = false
+}
+
+// 初始化地图
+const initMap = async () => {
+  console.log('initMap called, mapContainer:', mapContainer.value)
+  if (!mapContainer.value) {
+    console.error('地图容器不存在')
+    return
+  }
+
+  // 如果地图已存在，先销毁再重建
+  if (mapInstance) {
+    mapInstance.destroy()
+    mapInstance = null
+    markerInstance = null
+  }
+
+  try {
+    console.log('Starting AMapLoader.load...')
+    // 配置安全密钥
+    window._AMapSecurityConfig = {
+      securityJsCode: 'ab52c7df26d6d0b3f7530de9df51738b',
+    }
+
+    const AMap = await AMapLoader.load({
+      key: '8cd4ca87d4e2e73049af8b8a59537cab',
+      version: '2.0',
+      plugins: ['AMap.Scale'],
+    })
+    console.log('AMapLoader.load succeeded, AMap:', AMap)
+
+    // 默认以学校为例
+    const defaultCenter = form.value.longitude && form.value.latitude
+      ? [form.value.longitude, form.value.latitude]
+      : [116.407280, 39.904989]
+    console.log('Creating map with center:', defaultCenter)
+
+    mapInstance = new AMap.Map(mapContainer.value, {
+      zoom: 17,
+      center: defaultCenter,
+      viewMode: '2D',
+    })
+    console.log('Map created successfully')
+
+    // 等待地图渲染完成
+    mapInstance.on('complete', () => {
+      console.log('Map render complete')
+      // 触发 resize 确保地图正确显示
+      setTimeout(() => {
+        if (mapInstance) {
+          mapInstance.resize()
+        }
+      }, 200)
+    })
+
+    // 添加比例尺
+    mapInstance.addControl(new AMap.Scale())
+
+    // 添加点击事件
+    mapInstance.on('click', handleMapClick)
+
+    // 如果已有坐标，添加标记
+    if (form.value.longitude && form.value.latitude) {
+      markerInstance = new AMap.Marker({
+        position: [form.value.longitude, form.value.latitude],
+        title: '自习室位置',
+      })
+      mapInstance.add(markerInstance)
+    }
+  } catch (e) {
+    console.error('地图加载失败:', e)
+  }
+}
+
+// 定位到当前位置（使用高德地图精确定位）
+const locateCurrentPosition = async () => {
+  if (!mapInstance) {
+    console.error('地图实例不存在')
+    return
+  }
+
+  try {
+    // 配置安全密钥
+    window._AMapSecurityConfig = {
+      securityJsCode: 'ab52c7df26d6d0b3f7530de9df51738b',
+    }
+
+    const AMap = await AMapLoader.load({
+      key: '8cd4ca87d4e2e73049af8b8a59537cab',
+      version: '2.0',
+      plugins: ['AMap.Geolocation'],
+    })
+
+    const geolocation = new AMap.Geolocation({
+      enableHighAccuracy: true,
+      timeout: 10000,
+    })
+
+    geolocation.getCurrentPosition((status, result) => {
+      if (status === 'complete') {
+        const position = result.position
+        const lng = position.lng
+        const lat = position.lat
+        console.log('AMap position:', lat, lng)
+
+        // 地图移动到当前位置
+        mapInstance.setCenter([lng, lat])
+        mapInstance.setZoom(17)
+
+        // 如果已有标记则移除
+        if (markerInstance) {
+          mapInstance.remove(markerInstance)
+        }
+
+        // 添加新标记
+        markerInstance = new AMap.Marker({
+          position: [lng, lat],
+          title: '当前位置',
+        })
+        mapInstance.add(markerInstance)
+      } else {
+        console.error('定位失败:', result)
+        alert('定位失败，请检查定位权限或尝试手动选择位置')
+      }
+    })
+  } catch (e) {
+    console.error('定位服务加载失败:', e)
+    alert('定位服务加载失败')
+  }
+}
+
+// 监听 showMapPicker 变化
+watch(showMapPicker, async (newVal) => {
+  console.log('showMapPicker changed to:', newVal)
+  if (newVal) {
+    await nextTick()
+    console.log('After nextTick, mapContainer:', mapContainer.value)
+    setTimeout(() => {
+      initMap()
+    }, 100)
+  } else {
+    // 弹窗关闭时销毁地图实例
+    if (mapInstance) {
+      mapInstance.destroy()
+      mapInstance = null
+      markerInstance = null
+      console.log('Map destroyed')
+    }
+  }
+})
 </script>
 
 <template>
@@ -406,12 +586,56 @@ const formatTimeInput = (field, event) => {
               <label class="text-[11px] font-black text-[#5A52FF] tracking-[0.2em] uppercase ml-1">封面预览 URL</label>
               <input v-model="form.image" type="text" placeholder="https://unsplash.com/..." class="bg-[#0A0D18] border-2 border-[#1C2136] rounded-[22px] px-6 py-4 text-[14px] font-bold text-white focus:border-[#5A52FF] transition-all outline-none" />
             </div>
+
+            <div class="flex flex-col gap-3 md:col-span-2">
+              <label class="text-[11px] font-black text-[#5A52FF] tracking-[0.2em] uppercase ml-1">自习室位置</label>
+              <div class="flex items-center gap-3">
+                <div class="flex-1 bg-[#0A0D18] border-2 border-[#1C2136] rounded-[22px] px-6 py-4 text-[14px] font-bold text-gray-400">
+                  <span v-if="form.latitude && form.longitude" class="text-white">
+                    经度: {{ form.longitude }}, 纬度: {{ form.latitude }}
+                  </span>
+                  <span v-else class="text-gray-550">点击下方按钮在地图上选择位置</span>
+                </div>
+                <button @click="openMapPicker((lng, lat) => { form.longitude = lng; form.latitude = lat })" class="px-6 py-4 bg-[#5A52FF] text-white rounded-[22px] text-[14px] font-bold border-none cursor-pointer hover:bg-[#4a42e5] transition-all">
+                  选择位置
+                </button>
+              </div>
+            </div>
           </div>
 
           <div class="mt-12 flex gap-4">
             <button @click="showModal = false" class="flex-1 bg-[#1A1F30] text-gray-400 py-5 rounded-[22px] text-[15px] font-black hover:bg-[#20263d] hover:text-white transition-all border-none cursor-pointer">取消</button>
             <button @click="handleSaveRoom" class="flex-1 bg-[#5A52FF] text-white py-5 rounded-[22px] text-[15px] font-black shadow-[0_8px_25px_rgba(90,82,255,0.3)] hover:bg-[#4a42e5] transition-all border-none cursor-pointer">
               {{ modalMode === 'add' ? '立即创建' : '保存修改' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map Picker Modal -->
+    <div v-if="showMapPicker" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <div @click="showMapPicker = false" class="absolute inset-0 bg-[#0A0D18]/90 backdrop-blur-xl transition-opacity"></div>
+
+      <div class="bg-[#121624] border border-white/5 rounded-[32px] w-full max-w-3xl shadow-2xl relative z-10 overflow-hidden animate-modal">
+        <div class="px-8 py-6 border-b border-white/5 flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-black text-white tracking-wide">在地图上选择位置</h2>
+            <p class="text-xs font-bold text-gray-500 mt-1">点击地图选择自习室位置</p>
+          </div>
+          <button @click="showMapPicker = false" class="w-10 h-10 rounded-full bg-[#1A1F30] text-gray-400 hover:text-white transition flex items-center justify-center border-none cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div ref="mapContainer" class="w-full h-[400px] bg-[#1A1F30]" style="min-height: 400px;"></div>
+        <div class="px-8 py-4 border-t border-white/5 flex items-center justify-between bg-[#0A0D18]">
+          <span class="text-sm font-bold text-gray-500">点击地图任意位置即可选择</span>
+          <div class="flex gap-3">
+            <button @click="locateCurrentPosition" class="px-6 py-3 bg-green-500 text-white rounded-xl text-sm font-bold border-none cursor-pointer hover:bg-green-600 transition-all">
+              定位当前位置
+            </button>
+            <button @click="showMapPicker = false" class="px-6 py-3 bg-[#5A52FF] text-white rounded-xl text-sm font-bold border-none cursor-pointer hover:bg-[#4a42e5] transition-all">
+              确认选择
             </button>
           </div>
         </div>
