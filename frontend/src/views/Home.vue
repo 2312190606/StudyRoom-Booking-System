@@ -433,7 +433,7 @@ const handleQuickBook = async () => {
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
         <div v-for="room in studyRooms" :key="room.id" class="bg-white rounded-[1.25rem] overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition duration-300 group">
           <!-- Image -->
-          <div class="h-48 relative bg-gray-200 overflow-hidden">
+          <div class="h-32 sm:h-48 lg:h-auto aspect-video overflow-hidden rounded-t-[1.5rem]>
             <img :src="room.image" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
             <!-- Tag removed -->
           </div>
@@ -477,19 +477,19 @@ const handleQuickBook = async () => {
       </div>
 
       <!-- Quick Book Section (常用座位) -->
-      <div class="bg-white border border-gray-100 rounded-[1.25rem] p-6 flex items-center justify-between shadow-sm mt-4">
-        <div class="flex items-center gap-5">
-          <div class="w-[3.5rem] h-[3.5rem] rounded-2xl bg-[#5A52FF] text-white flex items-center justify-center shadow-lg shadow-indigo-200">
+      <div class="bg-white border border-gray-100 rounded-[1.25rem] p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm mt-4">
+        <div class="flex items-center gap-4 sm:gap-5">
+          <div class="w-10 h-10 sm:w-[3.5rem] sm:h-[3.5rem] rounded-xl sm:rounded-2xl bg-[#5A52FF] text-white flex items-center justify-center shadow-lg shadow-indigo-200">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
           </div>
           <div>
-            <h3 class="text-lg font-bold text-gray-900">常用座位</h3>
-            <div class="text-[13px] text-gray-500 mt-1 font-medium">快速预约您常坐的位置，开启专注模式</div>
+            <h3 class="text-base sm:text-lg font-bold text-gray-900">常用座位</h3>
+            <div class="text-xs sm:text-[13px] text-gray-500 mt-1 font-medium">快速预约您常坐的位置</div>
           </div>
         </div>
-        <div class="flex items-center gap-4">
-          <button @click="handleSetFrequent" class="px-6 py-3.5 rounded-xl border border-gray-200 text-gray-700 text-[15px] font-bold hover:bg-gray-50 transition cursor-pointer bg-white">设置常用</button>
-          <button @click="handleQuickBook" class="px-6 py-3.5 rounded-xl bg-[#5A52FF] text-white text-[15px] font-bold hover:bg-[#4a42e5] transition shadow-lg shadow-indigo-200 border-none cursor-pointer flex items-center justify-center" style="color: white !important;">
+        <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+          <button @click="handleSetFrequent" class="px-4 sm:px-6 py-2 sm:py-3.5 rounded-xl border border-gray-200 text-gray-700 text-xs sm:text-[15px] font-bold hover:bg-gray-50 transition cursor-pointer bg-white flex-1 sm:flex-none">设置常用</button>
+          <button @click="handleQuickBook" class="px-4 sm:px-6 py-2 sm:py-3.5 rounded-xl bg-[#5A52FF] text-white text-xs sm:text-[15px] font-bold hover:bg-[#4a42e5] transition shadow-lg shadow-indigo-200 border-none cursor-pointer flex items-center justify-center flex-1 sm:flex-none" style="color: white !important;">
             <span class="text-white" style="color: white !important;">一键预约 {{ frequentSeatStr }}</span>
           </button>
         </div>
@@ -503,7 +503,7 @@ const handleQuickBook = async () => {
       <!-- Modal Content -->
       <div class="bg-gray-50 w-full max-w-6xl h-full md:max-h-full rounded-[2rem] shadow-2xl relative flex flex-col overflow-hidden animate-fade-in-up">
         <!-- Header -->
-        <div class="bg-white px-8 py-6 border-b border-gray-100 flex items-center justify-between shrink-0">
+        <div class="bg-white px-4 sm:px-6 md:px-8 py-4 sm:py-6 border-b border-gray-100 flex items-center justify-between shrink-0">
           <div>
             <h2 class="text-2xl font-bold text-gray-900 tracking-wide">全部自习室</h2>
             <p class="text-[13px] text-gray-500 mt-1 font-medium">浏览并选择适合您的学习空间，共找到 {{ studyRooms.length }} 个结果</p>
@@ -518,7 +518,7 @@ const handleQuickBook = async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div v-for="room in studyRooms" :key="'modal-'+room.id" class="bg-white rounded-[1.25rem] overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition duration-300 group">
               <!-- Image -->
-              <div class="h-48 relative bg-gray-200 overflow-hidden">
+              <div class="h-32 sm:h-48 lg:h-auto aspect-video overflow-hidden rounded-t-[1.5rem]>
                 <img :src="room.image" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                 <!-- Tag removed -->
               </div>
@@ -565,14 +565,14 @@ const handleQuickBook = async () => {
     </div>
 
     <!-- Seat Selection Modal -->
-    <div v-if="showSeatModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 md:p-12">
+    <div v-if="showSeatModal" class="fixed inset-0 z-[110] flex items-center justify-center p-2 sm:p-4 md:p-6">
       <!-- Backdrop -->
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showSeatModal = false"></div>
       
       <!-- Modal Content -->
-      <div class="bg-gray-50 w-full max-w-4xl h-full md:max-h-full rounded-[2rem] shadow-2xl relative flex flex-col overflow-hidden animate-fade-in-up">
+      <div class="bg-gray-50 w-full max-w-4xl max-h-[90vh] md:max-h-full rounded-2xl sm:rounded-[2rem] shadow-2xl relative flex flex-col overflow-hidden animate-fade-in-up">
         <!-- Header -->
-        <div class="bg-white px-8 py-6 border-b border-gray-100 flex items-center justify-between shrink-0">
+        <div class="bg-white px-4 sm:px-6 md:px-8 py-4 sm:py-6 border-b border-gray-100 flex items-center justify-between shrink-0">
           <div>
             <h2 class="text-2xl font-bold text-gray-900 tracking-wide">{{ currentRoom?.name }} - {{ modalMode === 'book' ? '座位预选' : '设置常用' }}</h2>
             <p class="text-[13px] text-gray-500 mt-1 font-medium">点击绿色可用座位即可{{ modalMode === 'book' ? '快速预约' : '设为常用' }}</p>
@@ -599,21 +599,21 @@ const handleQuickBook = async () => {
         </div>
 
         <!-- Seat Grid -->
-        <div class="p-8 overflow-y-auto flex-1 flex justify-center items-start bg-gray-100/50">
+        <div class="p-2 sm:p-4 md:p-6 overflow-x-auto flex-1 flex justify-start items-start bg-gray-100/50">
             <!-- Simulated desk/room area -->
-            <div class="grid gap-3 sm:gap-4 lg:gap-5 bg-white p-6 md:p-8 rounded-[1.5rem] shadow-sm border border-gray-200"
+            <div class="grid gap-0.5 sm:gap-2 md:gap-3 bg-white p-3 sm:p-6 md:p-8 rounded-[1.5rem] shadow-sm border border-gray-200 min-w-[260px]"
                  :style="{ gridTemplateColumns: `repeat(${currentRoom?.cols || 8}, minmax(0, 1fr))` }">
                 <button v-for="seat in seats" :key="seat.id" @click="selectSeat(seat)"
                     :class="{
-                        'bg-green-500 hover:bg-green-600 hover:scale-[1.15] active:scale-95 cursor-pointer shadow-[0_4px_12px_rgba(34,197,94,0.3)] z-10': seat.status === 'available',
+                        'bg-green-500 hover:bg-green-600 hover:scale-110 active:scale-95 cursor-pointer shadow-[0_4px_12px_rgba(34,197,94,0.3)] z-10': seat.status === 'available',
                         'bg-red-500 opacity-80': seat.status === 'occupied',
                         'bg-gray-400 opacity-60': seat.status === 'maintenance',
                         'bg-yellow-400 shadow-[0_4px_12px_rgba(250,204,21,0.3)]': seat.status === 'booked',
                         'cursor-not-allowed': modalMode === 'book' && seat.status !== 'available',
-                        'hover:scale-[1.15] active:scale-95 cursor-pointer z-10 hover:shadow-lg': modalMode === 'setFrequent'
+                        'hover:scale-110 active:scale-95 cursor-pointer z-10 hover:shadow-lg': modalMode === 'setFrequent'
                     }"
-                    class="w-[2.5rem] h-[2.5rem] sm:w-[3rem] sm:h-[3rem] md:w-[3.5rem] md:h-[3.5rem] rounded-[10px] sm:rounded-xl transition-all duration-300 flex items-center justify-center border border-black/10 group relative border-none p-0 outline-none">
-                    <span class="text-[11px] md:text-[13px] font-black text-white/95 drop-shadow-sm">{{ seat.seatNumber }}</span>
+                    class="w-[1.75rem] h-[1.75rem] xs:w-[2rem] xs:h-[2rem] sm:w-[2.5rem] sm:h-[2.5rem] md:w-[3rem] md:h-[3rem] rounded-lg sm:rounded-xl transition-all duration-300 flex items-center justify-center border border-black/10 group relative border-none p-0 outline-none">
+                    <span class="text-[8px] xs:text-[9px] sm:text-[11px] md:text-[13px] font-black text-white/95 drop-shadow-sm">{{ seat.seatNumber }}</span>
                 </button>
             </div>
         </div>

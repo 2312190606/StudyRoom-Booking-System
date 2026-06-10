@@ -9,7 +9,7 @@ import AIChatButton from '../components/AIChatButton.vue'
     <Navbar />
 
     <!-- Main Content -->
-    <main class="w-full px-8 md:px-12 lg:px-20 py-8 pb-24 flex flex-col gap-6 max-w-[1200px] flex-1">
+    <main class="w-full px-4 sm:px-6 md:px-8 lg:px-12 py-6 pb-24 flex flex-col gap-6 max-w-[1200px] flex-1">
       <router-view />
     </main>
 

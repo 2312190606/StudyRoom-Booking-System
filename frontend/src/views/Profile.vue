@@ -129,14 +129,14 @@ const studyDays = computed(() => {
 <template>
   <div class="w-full flex flex-col gap-6">
       <!-- Top Card -->
-      <div class="w-full bg-white rounded-[2rem] p-8 md:p-10 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col md:flex-row items-center md:items-start gap-8 relative overflow-hidden">
+      <div class="w-full bg-white rounded-2xl sm:rounded-[2rem] p-5 sm:p-8 md:p-10 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col md:flex-row items-center md:items-start gap-5 sm:gap-8 relative overflow-hidden">
         <!-- Background Decoration -->
         <div class="absolute -top-32 -right-32 w-80 h-80 bg-[#f0f4ff] rounded-full blur-[60px] opacity-70"></div>
         
         <!-- Avatar Section -->
         <div class="relative">
-          <div class="w-[140px] h-[140px] rounded-[2rem] border-[4px] border-[#5A52FF] flex items-center justify-center bg-[#f8f9fc] shadow-lg shadow-indigo-100 overflow-hidden">
-            <span class="text-6xl font-black text-[#5A52FF]">{{ userProfile.avatar }}</span>
+          <div class="w-24 h-24 sm:w-32 sm:h-32 md:w-[140px] md:h-[140px] rounded-2xl sm:rounded-[2rem] border-2 sm:border-[4px] border-[#5A52FF] flex items-center justify-center bg-[#f8f9fc] shadow-lg shadow-indigo-100 overflow-hidden">
+            <span class="text-4xl sm:text-5xl md:text-6xl font-black text-[#5A52FF]">{{ userProfile.avatar }}</span>
           </div>
           <!-- Edit button -->
           <button @click="showEditModal = true; editForm = { username: userProfile.username, phone: userProfile.phone }" class="absolute -bottom-2 -right-2 w-12 h-12 bg-white rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.1)] border border-gray-100 flex items-center justify-center text-gray-400 hover:text-[#5A52FF] transition cursor-pointer z-10">
@@ -151,35 +151,35 @@ const studyDays = computed(() => {
           </div>
 
           <!-- Stats -->
-          <div class="flex flex-wrap gap-4 w-full">
+          <div class="flex flex-wrap gap-3 sm:gap-4 w-full">
             <!-- Stat 1 -->
-            <div class="bg-[#f8f9fc] rounded-[1rem] px-6 py-5 flex items-center gap-4 flex-1 min-w-[160px]">
-              <div class="w-12 h-12 rounded-full bg-[#efefff] text-[#5A52FF] flex items-center justify-center">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div class="bg-[#f8f9fc] rounded-xl sm:rounded-[1rem] px-4 sm:px-6 py-4 sm:py-5 flex items-center gap-3 sm:gap-4 flex-1 min-w-[130px] sm:min-w-[160px]">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#efefff] text-[#5A52FF] flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
               </div>
               <div class="flex flex-col">
-                <span class="text-[13px] text-gray-400 font-bold mb-0.5">累计专注</span>
-                <span class="text-xl font-black text-gray-900">{{ totalHours || 0 }}<span class="text-xs ml-0.5">h</span></span>
+                <span class="text-[11px] sm:text-[13px] text-gray-400 font-bold mb-0.5">累计专注</span>
+                <span class="text-lg sm:text-xl font-black text-gray-900">{{ totalHours || 0 }}<span class="text-[10px] sm:text-xs ml-0.5">h</span></span>
               </div>
             </div>
             <!-- Stat 2 -->
-            <div class="bg-[#f8f9fc] rounded-[1rem] px-6 py-5 flex items-center gap-4 flex-1 min-w-[160px]">
-              <div class="w-12 h-12 rounded-full bg-[#ecfdf3] text-[#10b981] flex items-center justify-center">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+            <div class="bg-[#f8f9fc] rounded-xl sm:rounded-[1rem] px-4 sm:px-6 py-4 sm:py-5 flex items-center gap-3 sm:gap-4 flex-1 min-w-[130px] sm:min-w-[160px]">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#ecfdf3] text-[#10b981] flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
               </div>
               <div class="flex flex-col">
-                <span class="text-[13px] text-gray-400 font-bold mb-0.5">学习天数</span>
-                <span class="text-xl font-black text-gray-900">{{ studyDays }}<span class="text-xs ml-0.5">天</span></span>
+                <span class="text-[11px] sm:text-[13px] text-gray-400 font-bold mb-0.5">学习天数</span>
+                <span class="text-lg sm:text-xl font-black text-gray-900">{{ studyDays }}<span class="text-[10px] sm:text-xs ml-0.5">天</span></span>
               </div>
             </div>
             <!-- Stat 3 -->
-            <div class="bg-[#f8f9fc] rounded-[1rem] px-6 py-5 flex items-center gap-4 flex-1 min-w-[160px]">
-              <div class="w-12 h-12 rounded-full bg-[#fef3c7] text-[#d97706] flex items-center justify-center">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.02z"></path></svg>
+            <div class="bg-[#f8f9fc] rounded-xl sm:rounded-[1rem] px-4 sm:px-6 py-4 sm:py-5 flex items-center gap-3 sm:gap-4 flex-1 min-w-[130px] sm:min-w-[160px]">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#fef3c7] text-[#d97706] flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.02z"></path></svg>
               </div>
               <div class="flex flex-col">
-                <span class="text-[13px] text-gray-400 font-bold mb-0.5">信誉分</span>
-                <span class="text-xl font-black text-gray-900">{{ userProfile.creditScore }}<span class="text-xs ml-0.5">分</span></span>
+                <span class="text-[11px] sm:text-[13px] text-gray-400 font-bold mb-0.5">信誉分</span>
+                <span class="text-lg sm:text-xl font-black text-gray-900">{{ userProfile.creditScore }}<span class="text-[10px] sm:text-xs ml-0.5">分</span></span>
               </div>
             </div>
           </div>
@@ -190,66 +190,66 @@ const studyDays = computed(() => {
       <div class="flex flex-col md:flex-row gap-6 w-full mt-2 z-10">
         
         <!-- Account Settings -->
-        <div class="flex-1 bg-white rounded-[2rem] p-8 md:p-10 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col">
+        <div class="flex-1 bg-white rounded-2xl sm:rounded-[2rem] p-5 sm:p-8 md:p-10 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col">
           <h2 class="text-xl font-black text-gray-900 mb-6 tracking-wide">账户设置</h2>
           <div class="flex flex-col space-y-2">
             
-            <button @click="showEditModal = true; editForm = { username: userProfile.username, phone: userProfile.phone }" class="flex items-center justify-between py-5 group cursor-pointer border-none bg-transparent border-b border-transparent hover:border-gray-50 text-left w-full">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center transition-transform group-hover:scale-110">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <button @click="showEditModal = true; editForm = { username: userProfile.username, phone: userProfile.phone }" class="flex items-center justify-between py-4 sm:py-5 group cursor-pointer border-none bg-transparent border-b border-transparent hover:border-gray-50 text-left w-full">
+              <div class="flex items-center gap-3 sm:gap-4">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center transition-transform group-hover:scale-110">
+                  <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                 </div>
-                <span class="text-[16px] font-bold text-gray-700 group-hover:text-gray-900">个人资料修改</span>
+                <span class="text-[14px] sm:text-[16px] font-bold text-gray-700 group-hover:text-gray-900">个人资料修改</span>
               </div>
-              <svg class="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 group-hover:text-gray-500 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
 
-            <button @click="showPasswordModal = true" class="flex items-center justify-between py-5 group cursor-pointer border-none bg-transparent border-b border-transparent hover:border-gray-50 text-left w-full">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center transition-transform group-hover:scale-110">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            <button @click="showPasswordModal = true" class="flex items-center justify-between py-4 sm:py-5 group cursor-pointer border-none bg-transparent border-b border-transparent hover:border-gray-50 text-left w-full">
+              <div class="flex items-center gap-3 sm:gap-4">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center transition-transform group-hover:scale-110">
+                  <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                 </div>
-                <span class="text-[16px] font-bold text-gray-700 group-hover:text-gray-900">修改登录密码</span>
+                <span class="text-[14px] sm:text-[16px] font-bold text-gray-700 group-hover:text-gray-900">修改登录密码</span>
               </div>
-              <svg class="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 group-hover:text-gray-500 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
 
           </div>
         </div>
 
         <!-- More Support -->
-        <div class="flex-1 bg-white rounded-[2rem] p-8 md:p-10 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col">
+        <div class="flex-1 bg-white rounded-2xl sm:rounded-[2rem] p-5 sm:p-8 md:p-10 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col">
           <h2 class="text-xl font-black text-gray-900 mb-6 tracking-wide">更多支持</h2>
           <div class="flex flex-col space-y-2">
             
-            <a @click="$router.push('/guide')" class="flex items-center justify-between py-5 group cursor-pointer border-b border-transparent hover:border-gray-50">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center transition-transform group-hover:scale-110">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <a @click="$router.push('/guide')" class="flex items-center justify-between py-4 sm:py-5 group cursor-pointer border-b border-transparent hover:border-gray-50">
+              <div class="flex items-center gap-3 sm:gap-4">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center transition-transform group-hover:scale-110">
+                  <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
-                <span class="text-[16px] font-bold text-gray-700 group-hover:text-gray-900">使用指南 & FAQ</span>
+                <span class="text-[14px] sm:text-[16px] font-bold text-gray-700 group-hover:text-gray-900">使用指南 & FAQ</span>
               </div>
-              <svg class="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 group-hover:text-gray-500 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </a>
 
-            <button @click="showChat = true" class="flex items-center justify-between py-5 group cursor-pointer border-b border-transparent hover:border-gray-50 text-left w-full border-none bg-transparent">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 text-purple-500 flex items-center justify-center transition-transform group-hover:scale-110">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+            <button @click="showChat = true" class="flex items-center justify-between py-4 sm:py-5 group cursor-pointer border-b border-transparent hover:border-gray-50 text-left w-full border-none bg-transparent">
+              <div class="flex items-center gap-3 sm:gap-4">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 text-purple-500 flex items-center justify-center transition-transform group-hover:scale-110">
+                  <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                 </div>
-                <span class="text-[16px] font-bold text-gray-700 group-hover:text-gray-900">AI 客服问答</span>
+                <span class="text-[14px] sm:text-[16px] font-bold text-gray-700 group-hover:text-gray-900">AI 客服问答</span>
               </div>
-              <svg class="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 group-hover:text-gray-500 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
 
-            <a @click="$router.push('/about')" class="flex items-center justify-between py-5 group cursor-pointer border-b border-transparent hover:border-gray-50">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center transition-transform group-hover:scale-110">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            <a @click="$router.push('/about')" class="flex items-center justify-between py-4 sm:py-5 group cursor-pointer border-b border-transparent hover:border-gray-50">
+              <div class="flex items-center gap-3 sm:gap-4">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center transition-transform group-hover:scale-110">
+                  <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                 </div>
-                <span class="text-[16px] font-bold text-gray-700 group-hover:text-gray-900">关于静学自习室</span>
+                <span class="text-[14px] sm:text-[16px] font-bold text-gray-700 group-hover:text-gray-900">关于静学自习室</span>
               </div>
-              <svg class="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 group-hover:text-gray-500 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </a>
 
           </div>
