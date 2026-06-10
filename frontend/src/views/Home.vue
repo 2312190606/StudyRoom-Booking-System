@@ -599,9 +599,9 @@ const handleQuickBook = async () => {
         </div>
 
         <!-- Seat Grid -->
-        <div class="p-2 sm:p-4 md:p-6 overflow-x-auto flex-1 flex justify-start items-start bg-gray-100/50">
+        <div class="p-2 sm:p-4 md:p-6 overflow-x-auto flex-1 flex justify-center items-start bg-gray-100/50">
             <!-- Simulated desk/room area -->
-            <div class="grid gap-0.5 sm:gap-2 md:gap-3 bg-white p-3 sm:p-6 md:p-8 rounded-[1.5rem] shadow-sm border border-gray-200 min-w-[260px]"
+            <div class="grid gap-0.5 sm:gap-2 md:gap-3 bg-white p-3 sm:p-6 md:p-8 rounded-[1.5rem] shadow-sm border border-gray-200"
                  :style="{ gridTemplateColumns: `repeat(${currentRoom?.cols || 8}, minmax(0, 1fr))` }">
                 <button v-for="seat in seats" :key="seat.id" @click="selectSeat(seat)"
                     :class="{
