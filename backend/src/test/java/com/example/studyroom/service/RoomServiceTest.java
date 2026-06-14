@@ -2,6 +2,7 @@ package com.example.studyroom.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.studyroom.mapper.ReservationMapper;
 import com.example.studyroom.mapper.SeatMapper;
 import com.example.studyroom.mapper.StudyRoomMapper;
 import com.example.studyroom.model.entity.Seat;
@@ -31,6 +32,9 @@ public class RoomServiceTest {
 
     @Mock
     private SeatMapper seatMapper;
+
+    @Mock
+    private ReservationMapper reservationMapper;
 
     @InjectMocks
     private RoomService roomService;

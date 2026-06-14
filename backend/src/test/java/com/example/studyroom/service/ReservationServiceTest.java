@@ -215,6 +215,8 @@ public class ReservationServiceTest {
     @Test
     void checkIn_Success() {
         when(reservationMapper.selectById(1L)).thenReturn(testReservation);
+        when(seatMapper.selectById(1L)).thenReturn(testSeat);
+        when(studyRoomMapper.selectById(1L)).thenReturn(testRoom);
 
         assertDoesNotThrow(() -> reservationService.checkIn(1L, 1L, null, null));
 

@@ -123,7 +123,7 @@ public class ReservationControllerTest {
     @Test
     void checkIn_InvalidStatus() throws Exception {
         doThrow(new BaseException("cannot check in"))
-                .when(reservationService).checkIn(anyLong(), anyLong(), any(Double.class), any(Double.class));
+                .when(reservationService).checkIn(anyLong(), anyLong(), nullable(Double.class), nullable(Double.class));
 
         mockMvc.perform(post("/api/reservations/1/check-in")
                         .contentType(MediaType.APPLICATION_JSON))
